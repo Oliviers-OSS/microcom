@@ -25,7 +25,7 @@ int crnl_mapping; //0 - no mapping, 1 mapping
 int script = 0; /* script active flag */
 char scr_name[MAX_SCRIPT_NAME] = "script.scr"; /* default name of the script */
 char device[MAX_DEVICE_NAME]; /* serial device name */
-int log = 0; /* log active flag */
+int logFlag = 0; /* log active flag */
 FILE* flog;   /* log file */
 int  pf = 0;  /* port file descriptor */
 struct termios pots; /* old port termios settings to restore */
@@ -90,7 +90,7 @@ void init_stdin(struct termios *sts) {
       main program function
 ********************************************************************/
 void main_usage(int exitcode, char *str, char *dev) {
-  fprintf(stderr, "Usage: microcom [options]\n"
+  fprintf(stderr, "\nUsage: microcom [options]\n"
 	  " [options] include:\n"
 	  "    -Ddevfile       use the specified serial port device;\n" 
           "                    if a port is not provided, microcom\n"
@@ -106,7 +106,7 @@ void main_usage(int exitcode, char *str, char *dev) {
 /* restore original terminal settings on exit */
 void cleanup_termios(int signal) {
   /* cloase the log file first */
-  if (log) {
+  if (logFlag) {
     fflush(flog);
     fclose(flog);
   }
@@ -146,19 +146,34 @@ int main(int argc, char *argv[]) {
   if (strlen(device) == 0) {
     /* if no device was passed on the command line,
        try to autodetect a modem */
-    for (i = 0; i < 4; i++)
-      if (autodetect(i)) {
-	sprintf(device, "/dev/ttyS%1d", i);
+    for (i = 0; i < 4; i++) {
+      sprintf(device, "/dev/ttyS%1d", i);
+      if (autodetect(device)) {	
 	break;
       }
-    if (i == 4)
+    }
+    /* try again, to find FTDI USB / serial devices (if any)*/
+    if (i == 4) {
+      for (i = 0; i < 4; i++) {
+	sprintf(device, "/dev/ttyUSB%1d", i);
+	if (autodetect(device)) {	  
+	  break;
+	} /* (autodetect(i)) */
+      } /* for (i = 0; i < 4; i++) */
+    } /* (i == 4) */
+    
+    if (i == 4) {
       main_usage(1, "no device found", "");
+    }
   }
 
   /* open the device */
   pf = open(device, O_RDWR);
-  if (pf < 0)
+  if (pf < 0) {
+    const int error = errno;
+    fprintf(stderr,"cannot open device, error = %d (%m)", device,error);
     main_usage(2, "cannot open device", device);
+  }
 
 
   /* modify the port configuration */

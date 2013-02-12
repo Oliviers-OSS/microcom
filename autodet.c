@@ -21,7 +21,7 @@
 
 
 #define LOCAL_BUF 25
-int autodetect(int port) {
+int autodetect(char *device) {
   int pf; /* port handler */
   int     i = 0;        /* used in the multiplex loop */
   int retval = 0;
@@ -30,7 +30,7 @@ int autodetect(int port) {
   struct timeval tv;
 
   char    buf[LOCAL_BUF + 1]; /* we'll add a '\0' */
-  char device[LOCAL_BUF];
+  //char device[LOCAL_BUF];
   struct  termios pts;  /* new comm port settings */
   struct termios pots; /*old comm port settings */
   struct  termios sts;  /* new stdin settings */
@@ -39,12 +39,13 @@ int autodetect(int port) {
   tv.tv_sec = 1;
   tv.tv_usec = 0;
 
-  sprintf(device, "/dev/ttyS%1d", port);
+  //sprintf(device, "/dev/ttyS%1d", port);
   printf("Try %s\n", device);
 
   pf = open(device, O_RDWR);
   if (pf < 0) {
-     printf("%s not found\n", device);
+     const int error = errno;
+     printf("open %s error %d (%m)\n", device,error);
      return 0;
   }
 

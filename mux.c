@@ -24,7 +24,7 @@
 
 extern int script;
 extern char scr_name[];
-extern int log;
+extern int logFlag;
 extern FILE* flog;
 
 void mux_clear_sflag(void) {
@@ -71,7 +71,7 @@ void mux_loop(int pf) {
       i = read(pf, buf, BUFSIZE);
       if (i > 0) {
 	write(STDOUT_FILENO, buf, i);
-	if (log)
+	if (logFlag)
 	  fwrite(buf, 1, i, flog);
 	if (script) {
 	  i = script_process(S_DCE, buf, i);

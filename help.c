@@ -23,7 +23,7 @@ extern int crnl_mapping; //0 - no mapping, 1 mapping
 extern int script; /* script active flag */
 extern char scr_name[MAX_SCRIPT_NAME]; /* default name of the script */
 extern char device[MAX_DEVICE_NAME]; /* serial device name */
-extern int log; /* log active flag */
+extern int logFlag; /* log active flag */
 extern FILE* flog;   /* log file */
 
 static int help_state = 0;
@@ -85,7 +85,7 @@ static void help_escape(void) {
 
   write(STDOUT_FILENO, str1, strlen(str1));
 
-  if (log == 0)
+  if (logFlag == 0)
     write(STDOUT_FILENO, "  l - log on             \n", 26);
   else
     write(STDOUT_FILENO, "  l - log off            \n", 26);
@@ -156,14 +156,16 @@ static void help_send_escape(int fd, char c) {
   case 'q': /* quit help */
     break;
   case 'l': /* log on/off */
-    log = (log == 0)? 1: 0;
-    if (log) { /* open log file */
+    logFlag = (logFlag == 0)? 1: 0;
+    if (logFlag) { /* open log file */
       if ((flog = fopen("microcom.log", "a")) == (FILE *)0) {
-	write(STDOUT_FILENO, "Cannot open microcom.log \n", 26);
-	log = 0;
+	const int error = error;
+	printf("Cannot open microcom.log error %d (%m)\n",error);
+	/*write(STDOUT_FILENO, "Cannot open microcom.log\n", 26);*/
+	logFlag = 0;
       }
     }
-    else { /* cloase log file */
+    else { /* close log file */
       fflush(flog);
       fclose(flog);
     }

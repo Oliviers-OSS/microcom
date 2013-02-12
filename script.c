@@ -451,7 +451,8 @@ static int readscript(char *s)
   int no = 0;
 
   if ((fp = fopen(s, "r")) == (FILE *)0) {
-  	s_error("runscript: couldn't open %s\r\n", s);
+	const int error = errno;
+  	s_error("runscript: couldn't open %s error %d (%m)\r\n", s,error);
   	cleanup_termios(1);
   }
   

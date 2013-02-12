@@ -18,20 +18,27 @@
 #** Rev. 0.9 - Sept. 1999
 #** Rev. 0.91 - Jan. 2000 - minor fixes, compiled under Mandrake 6.0
 #****************************************************************************/
+CFLAGS = -O0 -ggdb3
+LDFLAGS = -O0 -ggdb3
+CC = gcc
+ 
 microcom: microcom.o mux.o script.o help.o autodet.o
-	gcc -o microcom microcom.o mux.o script.o help.o autodet.o
+	$(CC) $(LDFLAGS) -o microcom microcom.o mux.o script.o help.o autodet.o
 
 autodet.o: autodet.c microcom.h
-	gcc -O -c autodet.c
+	$(CC) $(CFLAGS) -c autodet.c
 
 script.o: script.c script.h microcom.h
-	gcc -O -c script.c
+	$(CC) $(CFLAGS) -c script.c
 
 mux.o: mux.c microcom.h
-	gcc -O -c mux.c
+	$(CC) $(CFLAGS) -c mux.c
 
 microcom.o: microcom.c microcom.h
-	gcc -O -c microcom.c
+	$(CC) $(CFLAGS) -c microcom.c
 
 help.o: help.c microcom.h
-	gcc -O -c help.c
+	$(CC) $(CFLAGS) -c help.c
+
+clean:
+	/bin/rm -f microcom microcom.o mux.o script.o help.o autodet.o
