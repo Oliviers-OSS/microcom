@@ -120,7 +120,7 @@ int close_logFile() {
       - exitcode - to be returned when the program is ended
       - error - error string to be printed
       - addl - another error string to be printed
- static void cleanup_termios(int signal)
+ void cleanup_termios(int signal)
       signal handler to restore terminal set befor exit
  int main(int argc, char *argv[]) -
       main program function
@@ -163,7 +163,8 @@ int main(int argc, char *argv[]) {
     if (strncmp(argv[i], "-S", 2) == 0) {
       script = 1; /* set script flag */
       if (argv[i][2] != '\0') { /* we have a new scriptname */
-         strncpy(scr_name, &argv[1][2], MAX_SCRIPT_NAME);      
+         strncpy(scr_name, &argv[i][2], MAX_SCRIPT_NAME);      
+	 DEBUG_VAR(scr_name,"%s");
       }
     } else if (strncmp(argv[i], "-D", 2) == 0) {
       if (argv[i][2] != '\0') { /* we have a device */

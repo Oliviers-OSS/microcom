@@ -93,6 +93,11 @@ void script_init(char* s) {
   }
   
   curenv = (ENV*)malloc(sizeof(ENV));
+  if (NULL == curenv) {
+    CRIT_MSG("failed to allocate %d bytes for execution environment",sizeof(ENV));
+    cleanup_termios(1); /* aborting... */
+  }
+  
   curenv->thisline = NULL;
   curenv->in_timeout = 0;
   curenv->lines = LNULL;
@@ -232,6 +237,7 @@ char* doexpect(char *text)
   int i;
   
   if (curenv->in_timeout == 0) {
+    DEBUG_MSG("Start waiting for %s",text);
     sprintf(temp, "Start waiting for %s", text);
     doprint(temp);
     curenv->in_timeout = 60;
@@ -239,6 +245,7 @@ char* doexpect(char *text)
     curenv->in_timeout--;
   }
   if (curenv->in_timeout % 10 == 0) {
+    INFO_MSG("time out (%d) waiting for %s", curenv->in_timeout,text);
     sprintf(temp, "timeout = %d", curenv->in_timeout);
     doprint(temp);
   }
@@ -251,7 +258,8 @@ char* doexpect(char *text)
   in_buffer[in_index] = '\0';
 
   /* look for our string */
-  if (strstr(in_buffer, text) != NULL) {
+  const char *found = strstr(in_buffer, text);
+  if (found != NULL) {
     curenv->in_timeout = 0;
     in_buffer[0] = '\0';
     in_index = 0;
@@ -266,7 +274,7 @@ char* doexpect(char *text)
     return doprint(temp);
   }
   
-  /* nothing arived, just clean the in_buffer; keep the last part of the buffer  */
+  /* nothing arrived, just clean the in_buffer; keep the last part of the buffer  */
   if (strlen(in_buffer) > strlen(text)) {
     strcpy(temp, &in_buffer[in_index - strlen(text)]);
     strcpy(in_buffer, temp);
@@ -488,7 +496,7 @@ static int readscript(char *s)
   	cleanup_termios(1);
   }
   
-  /* Read all the lines into a linked list in memory. */
+  /* Read all the lines into a linked list in memory. */  
   while((t = fgets(buf, 300, fp)) != CNULL) {
   	no++;
   	skipspace(&t);
