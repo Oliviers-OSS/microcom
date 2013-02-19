@@ -19,11 +19,13 @@
 ****************************************************************************/
 #include "microcom.h"
 
+#define MICROCOM_PROMPT	"Microcom cmd:" /*Command:*/ /* to avoid confusion with the program output received by the serial link */
+
 extern int crnl_mapping; //0 - no mapping, 1 mapping
 extern int script; /* script active flag */
 extern char scr_name[MAX_SCRIPT_NAME]; /* default name of the script */
 extern char device[MAX_DEVICE_NAME]; /* serial device name */
-extern int logFlag; /* log active flag */
+//extern int logFlag; /* log active flag */
 extern FILE* flog;   /* log file */
 
 static int help_state = 0;
@@ -80,12 +82,12 @@ static void help_escape(void) {
   char str2[] =
     "  t - set terminal\n"
     "  q - quit help\n"
-    "*************************\n"
-    "Command: ";
+    "*************************\n"    
+    MICROCOM_PROMPT;
 
   write(STDOUT_FILENO, str1, strlen(str1));
 
-  if (logFlag == 0)
+  if (flog == 0)
     write(STDOUT_FILENO, "  l - log on             \n", 26);
   else
     write(STDOUT_FILENO, "  l - log off            \n", 26);
@@ -110,7 +112,7 @@ static void help_terminal(void) {
     "  s - software flow control\n"
     "  q - quit help\n"
     "*************************\n"
-    "Command: ";
+    MICROCOM_PROMPT;
 
   write(STDOUT_FILENO, str1, strlen(str1));
   if (crnl_mapping)
@@ -135,7 +137,7 @@ static void help_speed(void) {
     " j - 460800\n"
     " q - quit help\n"
     "*************************\n"
-    "Command: ";
+    MICROCOM_PROMPT;
 
   write(STDOUT_FILENO, str, strlen(str));
 }
@@ -155,19 +157,12 @@ static void help_send_escape(int fd, char c) {
     break;
   case 'q': /* quit help */
     break;
-  case 'l': /* log on/off */
-    logFlag = (logFlag == 0)? 1: 0;
-    if (logFlag) { /* open log file */
-      if ((flog = fopen("microcom.log", "a")) == (FILE *)0) {
-	const int error = error;
-	printf("Cannot open microcom.log error %d (%m)\n",error);
-	/*write(STDOUT_FILENO, "Cannot open microcom.log\n", 26);*/
-	logFlag = 0;
-      }
+  case 'l': /* log on/off */    
+    if (flog == 0) { /* open log file */
+      open_logFile();
     }
     else { /* close log file */
-      fflush(flog);
-      fclose(flog);
+      close_logFile();
     }
     break;
   case 's': /* script active/inactive */
@@ -209,12 +204,13 @@ static void help_set_terminal(int fd, char c) {
     help_state = 0;
     if (crnl_mapping) {
       pts.c_oflag &= ~ONLCR;
-      crnl_mapping = 0;
+      crnl_mapping = 0;      
     }
     else { 
       pts.c_oflag |= ONLCR;
       crnl_mapping = 1;
     }
+    fprintf(stderr,"Map CarriageReturn to NewLine on output = %d\n",crnl_mapping);
     tcsetattr(fd, TCSANOW, &pts);
     break;
   case 'p': /* port speed */

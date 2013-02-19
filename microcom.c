@@ -25,7 +25,7 @@ int crnl_mapping; //0 - no mapping, 1 mapping
 int script = 0; /* script active flag */
 char scr_name[MAX_SCRIPT_NAME] = "script.scr"; /* default name of the script */
 char device[MAX_DEVICE_NAME]; /* serial device name */
-int logFlag = 0; /* log active flag */
+//int logFlag = 0; /* log active flag */
 FILE* flog;   /* log file */
 int  pf = 0;  /* port file descriptor */
 struct termios pots; /* old port termios settings to restore */
@@ -46,14 +46,23 @@ void init_comm(struct termios *pts) {
     * Do no translation:
     *  no NL -> CR/NL mapping on output, and
     *  no CR -> NL mapping on input.
-    */
-   pts->c_oflag |= ONLCR;
-   crnl_mapping = 1;
-   pts->c_iflag &= ~ICRNL;
+    */   
+   pts->c_oflag &= ~ONLCR; /* set NO CR/NL mapping on output */
+   crnl_mapping = 0; 
+      
+   /*pts->c_oflag |= ONLCR;
+   crnl_mapping = 1;*/
+   pts->c_iflag &= ~ICRNL; /* set NO CR/NL mapping on input */
 
-  /* set hardware flow control by default */
-  pts->c_cflag |= CRTSCTS;
+  /* set no flow control by default */ 
+  pts->c_cflag &= ~CRTSCTS;
   pts->c_iflag &= ~(IXON | IXOFF | IXANY);
+    
+  /* set hardware flow control by default */
+  /*pts->c_cflag |= CRTSCTS;  
+  pts->c_iflag &= ~(IXON | IXOFF | IXANY);*/
+  
+  
   /* set 9600 bps speed by default */
   cfsetospeed(pts, B9600);
   cfsetispeed(pts, B9600);
@@ -72,8 +81,39 @@ void init_stdin(struct termios *sts) {
    sts->c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
 }
 
+int open_logFile() {
+  const char *filename = "microcom.log";
+  int error = EXIT_SUCCESS;
+  if (flog != 0) {
+    flog = fopen(filename, "a");    
+    if (flog != (FILE *)0) {
+      fprintf(stderr,"log enabled\n");
+    } else {
+      error = error;
+      printf("Cannot open microcom.log error %d (%m)\n",error);
+      /*write(STDOUT_FILENO, "Cannot open microcom.log\n", 26);*/
+    }
+  } else {
+    /* file already opened */
+    fprintf(stderr,"file already opened\n");
+  }
+    
+  return error;
+}
 
- 
+int close_logFile() {
+  int error = EXIT_SUCCESS;
+  if (flog != 0) {    
+    if (fclose(flog) != 0) {
+      error = errno;
+      fprintf(stderr,"error %d (%m) closing the log file\n",error);
+    }
+    flog = 0; /* set to null anyway to be able to open a new one */
+  } else {
+    fprintf(stderr,"there is no log file opened\n");
+  }
+  return error;
+}
 
 
 /********************************************************************
@@ -105,16 +145,14 @@ void main_usage(int exitcode, char *str, char *dev) {
 
 /* restore original terminal settings on exit */
 void cleanup_termios(int signal) {
-  /* cloase the log file first */
-  if (logFlag) {
-    fflush(flog);
-    fclose(flog);
+  /* close the log file first */
+  if (flog) {
+    close_logFile();
   }
   tcsetattr(pf, TCSANOW, &pots);
   tcsetattr(STDIN_FILENO, TCSANOW, &sots);
   exit(0);
 } 
-
 
 int main(int argc, char *argv[]) {
   struct  termios pts;  /* termios settings on port */
@@ -130,18 +168,21 @@ int main(int argc, char *argv[]) {
       script = 1; /* set script flag */
       if (argv[i][2] != '\0') /* we have a new scriptname */
 	strncpy(scr_name, &argv[1][2], MAX_SCRIPT_NAME);
-      continue;
+      //continue;
     }
-    if (strncmp(argv[i], "-D", 2) == 0) {
+    else if (strncmp(argv[i], "-D", 2) == 0) {
       if (argv[i][2] != '\0') /* we have a device */
 	strncpy(device, &argv[i][2], MAX_DEVICE_NAME);
-      continue;
+      //continue;
     }
-    if (strncmp(argv[i], "-?", 2) == 0 ||
-	strncmp(argv[i], "-H", 2) == 0)
+    else if (strncmp(argv[i], "-?", 2) == 0 ||
+	strncmp(argv[i], "-H", 2) == 0) {
       main_usage(0, "", "");
-  }
-   
+    }
+    else if (strncmp(argv[i], "-L", 2) == 0) {      
+      open_logFile();      
+    }
+  }   
 
   if (strlen(device) == 0) {
     /* if no device was passed on the command line,
@@ -171,10 +212,9 @@ int main(int argc, char *argv[]) {
   pf = open(device, O_RDWR);
   if (pf < 0) {
     const int error = errno;
-    fprintf(stderr,"cannot open device, error = %d (%m)", device,error);
+    fprintf(stderr,"cannot open device %s, error = %d (%m)", device,error);
     main_usage(2, "cannot open device", device);
   }
-
 
   /* modify the port configuration */
   tcgetattr(pf, &pts);
@@ -206,8 +246,3 @@ int main(int argc, char *argv[]) {
   exit(0);
 
 }
-
-
-
-
-

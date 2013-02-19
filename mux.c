@@ -24,7 +24,6 @@
 
 extern int script;
 extern char scr_name[];
-extern int logFlag;
 extern FILE* flog;
 
 void mux_clear_sflag(void) {
@@ -44,8 +43,9 @@ void mux_loop(int pf) {
   tv.tv_sec = SCRIPT_DELAY;
   tv.tv_usec = 0;
 
-  if (script) 
+  if (script) {
     script_init(scr_name);
+  }
 
   do { /* forever */
     FD_ZERO(&ready);
@@ -63,33 +63,37 @@ void mux_loop(int pf) {
 	tv.tv_usec = 0;
       }
     } /* if */
-    else 
+    else {
       select(pf+1, &ready, NULL, NULL, NULL);
+    }
 
     if (FD_ISSET(pf, &ready)) {
       /* pf has characters for us */
       i = read(pf, buf, BUFSIZE);
       if (i > 0) {
 	write(STDOUT_FILENO, buf, i);
-	if (logFlag)
+	if (flog != 0) {
 	  fwrite(buf, 1, i, flog);
+	}
 	if (script) {
 	  i = script_process(S_DCE, buf, i);
-	  if (i > 0)
+	  if (i > 0) {
 	    cook_buf(pf, buf, i);
+	  }
 	}
-      }
-      else
+      } else {
 	done = 1;
+      }
     } /* if */
 
     if (FD_ISSET(STDIN_FILENO, &ready)) {
       /* standard input has characters for us */
       i = read(STDIN_FILENO, buf, BUFSIZE);
-      if (i > 0)
+      if (i > 0) {
 	cook_buf(pf, buf, i);
-      else
+      } else {
 	done = 1;
+      }
     } /* if */
   } while (!done); /* do */
 }

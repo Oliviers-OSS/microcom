@@ -52,7 +52,9 @@ void cleanup_termios(int signal);
 void init_stdin(struct termios *sts);
 void init_comm(struct termios *pts);
 void main_usage(int exitcode, char *str, char *dev);
-   
+int open_logFile();
+int close_logFile();
+
 #endif /* MICROCOM_H */
 
 
