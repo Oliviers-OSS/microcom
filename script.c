@@ -57,6 +57,7 @@ static char* script_do_line(void);
 static char* s_exec(char *text);
 static int getnum(char *text);
 static char *getword(char **s);
+static char *getstring(char **s); /* same as getword but send an empty string instead of NULL when the word is an empty string */
 static VAR *getvar(char *name, int cr);
 static void syntaxerr(char *s);
 
@@ -177,9 +178,13 @@ char* doset(char *text)
   VAR *v;
   
   w = getword(&text);
-  if (w == CNULL) syntaxerr("(missing var name)");
+  if (w == CNULL) {
+    syntaxerr("(missing var name)");
+  }
   v = getvar(w, 1);
-  if (*text) v->value = getnum(getword(&text));
+  if (*text) {
+    v->value = getnum(getword(&text));
+  }
   return NULL;
 } 
 
@@ -192,9 +197,12 @@ char* dodec(char *text)
   VAR *v;
   
   w = getword(&text);
-  if (w == CNULL)  syntaxerr("(expected variable)");
+  if (w == CNULL)  {
+    syntaxerr("(expected variable)");
+  }
   v = getvar(w, 0);
   v->value--;
+  DEBUG_VAR(v->value,"%d");
   return NULL;
 }
 
@@ -207,9 +215,12 @@ char* doinc(char *text)
   VAR *v;
   
   w = getword(&text);
-  if (w == CNULL)  syntaxerr("(expected variable)");
+  if (w == CNULL)  {
+    syntaxerr("(expected variable)");
+  }
   v = getvar(w, 0);
   v->value++;
+  DEBUG_VAR(v->value,"%d");
   return NULL;
 }
 
@@ -226,8 +237,12 @@ char* dotimeout(char *text)
 
   if (curenv->in_timeout == 0) {
     w = getword(&text);
-    if(w == CNULL) syntaxerr("(argument expected)");
-    if ((val = getnum(w)) == 0) syntaxerr("(invalid argument)");
+    if(w == CNULL) {
+      syntaxerr("(argument expected)");
+    }
+    if ((val = getnum(w)) == 0) {
+      syntaxerr("(invalid argument)");
+    }
     curenv->in_timeout = val;
   } else {
     curenv->in_timeout--;
@@ -257,8 +272,9 @@ char* doexpect(char *text)
 
   /* clean in_buffer of '\0' */
   for (i = 0; i < in_index; i++) {
-    if (in_buffer[i] == '\0')
+    if (in_buffer[i] == '\0') {
       in_buffer[i] = ' ';
+    }
   }
   in_buffer[in_index] = '\0';
 
@@ -304,24 +320,25 @@ char* dosendif(char *text)
     syntaxerr("(sendif first args)"); 
   }
   
-  word = getword(&text);
+  word = getstring(&text); /* empty string allowed */
   if (word != CNULL) {
      strcpy(toSend,word);
   } else {
     syntaxerr("(sendif second args)"); 
   }
   
-  if (curenv->in_timeout == 0) {
-    DEBUG_MSG("Start waiting for %s",text);
-    sprintf(temp, "Start waiting for %s", text);
+  if (curenv->in_timeout == 0) {    
+    sprintf(temp, "Start waiting for %s to send %s", expected,toSend);
+    DEBUG_MSG("%s",temp);
     doprint(temp);
     curenv->in_timeout = 60;
   } else {
     curenv->in_timeout--;
   }
-  if (curenv->in_timeout % 10 == 0) {
-    INFO_MSG("time out (%d) waiting for %s", curenv->in_timeout,text);
-    sprintf(temp, "timeout = %d", curenv->in_timeout);
+  
+  if (curenv->in_timeout % 10 == 0) { /* progress message */
+    sprintf(temp,"time out (%d) waiting for %s to send %s", curenv->in_timeout,expected,toSend);
+    DEBUG_MSG("%s",temp);
     doprint(temp);
   }
 
@@ -347,7 +364,8 @@ char* dosendif(char *text)
   if (curenv->in_timeout == 0) {
     in_buffer[0] = '\0';
     in_index = 0;
-    sprintf(temp, "Error expecting string %s", text);
+    sprintf(temp, "Error expecting string %s to send %s", expected,toSend);
+    WARNING_MSG("%s",temp);
     return doprint(temp);
   }
   
@@ -501,7 +519,9 @@ static char* s_exec(char *text)
   w = getword(&text);
 
   /* If it is a label or a comment, skip it. */
-  if (w == CNULL || *w == '#' || w[strlen(w) - 1] == ':') return(NULL);
+  if (w == CNULL || *w == '#' || w[strlen(w) - 1] == ':') {
+    return(NULL);
+  }
   
   /* See which command it is. */
   for(k = keywords; k->command; k++) {
@@ -645,7 +665,7 @@ static char *strsave(char *s)
   return(t);
 }
 
-static char *getword(char **s)
+static char *getstring(char **s)
 {
   static char buf[81];
   int len, f;
@@ -653,11 +673,7 @@ static char *getword(char **s)
   char *t = *s;
   int sawesc = 0;
   int sawq = 0;
-  char *env, envbuf[32];
-
-  if (**s == 0) {
-    return(CNULL);
-  }
+  char *env, envbuf[32];  
 
   for(len = 0; len < 81; len++) {
   	if (sawesc && t[len]) {
@@ -735,3 +751,10 @@ static char *getword(char **s)
   return(buf);
 }
 
+static char *getword(char **s) {
+  if (**s == 0) {
+    return(CNULL);
+  } else {
+    return getstring(s);
+  }
+}

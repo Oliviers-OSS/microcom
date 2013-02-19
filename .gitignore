@@ -8,3 +8,4 @@ debian
 *.orig
 *.bz2
 *.gz
+*.o
