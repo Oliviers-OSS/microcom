@@ -30,8 +30,6 @@ void mux_clear_sflag(void) {
   script = 0;
 }
 
-
-
 /* main program loop */
 void mux_loop(int pf) {
   fd_set  ready;        /* used for select */
@@ -56,7 +54,7 @@ void mux_loop(int pf) {
       if (!select(pf+1, &ready, NULL, NULL, &tv)) {
 	i = script_process(S_TIMEOUT, buf, BUFSIZE);
 	if (i > 0) {
-	  cook_buf(pf, buf, i);
+	   cook_buf(pf, buf, i);
 	}
 	/* restart timer */
 	tv.tv_sec = SCRIPT_DELAY;
@@ -73,12 +71,12 @@ void mux_loop(int pf) {
       if (i > 0) {
 	write(STDOUT_FILENO, buf, i);
 	if (flog != 0) {
-	  fwrite(buf, 1, i, flog);
+	   fwrite(buf, 1, i, flog);
 	}
 	if (script) {
 	  i = script_process(S_DCE, buf, i);
 	  if (i > 0) {
-	    cook_buf(pf, buf, i);
+	     cook_buf(pf, buf, i);
 	  }
 	}
       } else {
@@ -90,9 +88,9 @@ void mux_loop(int pf) {
       /* standard input has characters for us */
       i = read(STDIN_FILENO, buf, BUFSIZE);
       if (i > 0) {
-	cook_buf(pf, buf, i);
+	 cook_buf(pf, buf, i);
       } else {
-	done = 1;
+	 done = 1;
       }
     } /* if */
   } while (!done); /* do */

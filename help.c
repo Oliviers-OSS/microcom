@@ -87,15 +87,17 @@ static void help_escape(void) {
 
   write(STDOUT_FILENO, str1, strlen(str1));
 
-  if (flog == 0)
+  if (flog == 0) {
     write(STDOUT_FILENO, "  l - log on             \n", 26);
-  else
+  } else {
     write(STDOUT_FILENO, "  l - log off            \n", 26);
+  }
 
-  if (script == 1)
+  if (script == 1) {
     write(STDOUT_FILENO, "  s - stop script        \n", 26);
-  else
+  } else {
     write(STDOUT_FILENO, "  s - start script       \n", 26);
+  }
 
   write(STDOUT_FILENO, str2, strlen(str2));
 }
@@ -115,10 +117,11 @@ static void help_terminal(void) {
     MICROCOM_PROMPT;
 
   write(STDOUT_FILENO, str1, strlen(str1));
-  if (crnl_mapping)
+  if (crnl_mapping) {
     write(STDOUT_FILENO, "  m - no CR/NL mapping   \n", 26);
-  else 
+  } else {
     write(STDOUT_FILENO, "  m - NL to CR/NL mapping\n", 26);
+  }
   write(STDOUT_FILENO, str2, strlen(str2));
 }
 
@@ -205,12 +208,11 @@ static void help_set_terminal(int fd, char c) {
     if (crnl_mapping) {
       pts.c_oflag &= ~ONLCR;
       crnl_mapping = 0;      
-    }
-    else { 
+    } else { 
       pts.c_oflag |= ONLCR;
       crnl_mapping = 1;
     }
-    fprintf(stderr,"Map CarriageReturn to NewLine on output = %d\n",crnl_mapping);
+    DEBUG_MSG("Map CarriageReturn to NewLine on output = %d",crnl_mapping);
     tcsetattr(fd, TCSANOW, &pts);
     break;
   case 'p': /* port speed */
@@ -323,13 +325,16 @@ void cook_buf(int fd, char *buf, int num) {
 
     /* look for the next escape character '~' */
     while ((current < num) && (buf[current] != 0x7e)) current++;
-    /* and write the sequence befor esc char to the comm port */
-    if (current) write (fd, buf, current);
+    /* and write the sequence before esc char to the comm port */
+    if (current) {
+      write (fd, buf, current);
+    }
 
     if (current < num) { /* process an escape sequence */
       /* found an escape character */
-      if (help_state == 0)
+      if (help_state == 0) {
 	help_escape();
+      }
       current++;
       if (current >= num) {
 	/* interpret first character of next sequence */

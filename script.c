@@ -100,8 +100,8 @@ void script_init(char* s) {
   curenv->scriptname = s;
   
   if (readscript(s) < 0) {
-    freemem();
-    free(curenv);
+     freemem();
+     free(curenv);
   }
 }  
 
@@ -113,14 +113,15 @@ int script_process(S_ORIGINATOR orig, char* buf, int size) {
     buf[0] = '\0';
     ptr = script_do_line();
     if (ptr != NULL) {
-      strcat(buf, ptr);
-      strcat(buf, "\n");
+       strcat(buf, ptr);
+       strcat(buf, "\n");
     }
     break;
   case S_DCE:          /* store the input in in_buffer */
     if (size > 0) {
-      if (in_index + size >= INBUF_SIZE)
-	in_index = 0;
+      if (in_index + size >= INBUF_SIZE) {
+	 in_index = 0;
+      }
       strncpy(&in_buffer[in_index], buf, size);
       in_index += size;
     }
@@ -140,11 +141,13 @@ int script_process(S_ORIGINATOR orig, char* buf, int size) {
 **********************************************************/
 static char* script_do_line(void) {
   char* ptr;
-  if (curenv->thisline == NULL)
-    curenv->thisline = curenv->lines;
+  if (curenv->thisline == NULL) {
+     curenv->thisline = curenv->lines;
+  }
   ptr = s_exec(curenv->thisline->line);
-  if (curenv->in_timeout == 0)
-    curenv->thisline = curenv->thisline->next;
+  if (curenv->in_timeout == 0) {
+     curenv->thisline = curenv->thisline->next;
+  }
   return ptr;
 }
 
@@ -216,9 +219,9 @@ char* dotimeout(char *text)
     if(w == CNULL) syntaxerr("(argument expected)");
     if ((val = getnum(w)) == 0) syntaxerr("(invalid argument)");
     curenv->in_timeout = val;
-  }
-  else
+  } else {
     curenv->in_timeout--;
+  }
 
   return NULL;
 }
@@ -232,9 +235,9 @@ char* doexpect(char *text)
     sprintf(temp, "Start waiting for %s", text);
     doprint(temp);
     curenv->in_timeout = 60;
-  }
-  else
+  } else {
     curenv->in_timeout--;
+  }
   if (curenv->in_timeout % 10 == 0) {
     sprintf(temp, "timeout = %d", curenv->in_timeout);
     doprint(temp);
@@ -254,6 +257,7 @@ char* doexpect(char *text)
     in_index = 0;
     return NULL;
   }
+  
   /* timeout */
   if (curenv->in_timeout == 0) {
     in_buffer[0] = '\0';
@@ -261,6 +265,7 @@ char* doexpect(char *text)
     sprintf(temp, "Error expecting string %s", text);
     return doprint(temp);
   }
+  
   /* nothing arived, just clean the in_buffer; keep the last part of the buffer  */
   if (strlen(in_buffer) > strlen(text)) {
     strcpy(temp, &in_buffer[in_index - strlen(text)]);
@@ -290,31 +295,49 @@ char* doif(char* text) {
   int n2;
   char op;
   
-  if ((w = getword(&text)) == CNULL) syntaxerr("(if)");
+  if ((w = getword(&text)) == CNULL) { 
+     syntaxerr("(if)"); 
+  }
   n1 = getnum(w);
-  if ((w = getword(&text)) == CNULL) syntaxerr("(if)");
-  if (strcmp(w, "!=") == 0)
+  if ((w = getword(&text)) == CNULL) { 
+    syntaxerr("(if)"); 
+  }
+  if (strcmp(w, "!=") == 0) {
 	op = '!';
-  else {
-	if (*w == 0 || w[1] != 0) syntaxerr("(if)");
+  } else {
+	if (*w == 0 || w[1] != 0) { 
+	  syntaxerr("(if)"); 
+	}
 	op = *w;
   }
-  if ((w = getword(&text)) == CNULL) syntaxerr("(if)");
+  if ((w = getword(&text)) == CNULL) { 
+    syntaxerr("(if)"); 
+  }
   n2 = getnum(w);
-  if (!*text) syntaxerr("(expected command after if)");
+  if (!*text) { 
+    syntaxerr("(expected command after if)"); 
+  }
   
   switch (op) {
   case '=':
-    if (!(n1 == n2)) return(OK);
+    if (!(n1 == n2)) { 
+      return(OK); 
+    }
     break;
   case '!':
-    if (!(n1 != n2)) return(OK);
+    if (!(n1 != n2)) { 
+      return(OK); 
+    }
     break;
   case '>':
-    if (!(n1 > n2)) return(OK);
+    if (!(n1 > n2)) { 
+      return(OK); 
+    }
     break;
   case '<':
-    if (!(n1 < n2)) return(OK);
+    if (!(n1 < n2)) { 
+      return(OK); 
+    }
     break;
   default:
     syntaxerr("(unknown operator)");
@@ -330,10 +353,15 @@ char* dogoto(char* text) {
   int len;
 
   w = getword(&text);
-  if (w == CNULL || *text) syntaxerr("(in goto/gosub label)");
+  if (w == CNULL || *text) {
+    syntaxerr("(in goto/gosub label)");
+  }
   snprintf(buf, sizeof(buf), "%s:", w);
   len = strlen(buf);
-  for(l = curenv->lines; l; l = l->next) if (!strncmp(l->line, buf, len)) break;
+  for(l = curenv->lines; l; l = l->next) {
+    if (!strncmp(l->line, buf, len)) 
+      break;
+  }
   if (l == LNULL) {
   	s_error("script \"%s\" line %d: label \"%s\" not found\r\n",
   		curenv->scriptname, curenv->thisline->lineno, w);
@@ -384,8 +412,9 @@ static char* s_exec(char *text)
   if (w == CNULL || *w == '#' || w[strlen(w) - 1] == ':') return(NULL);
   
   /* See which command it is. */
-  for(k = keywords; k->command; k++)
+  for(k = keywords; k->command; k++) {
   	if (!strcmp(w, k->command)) break;
+  }
 
   /* Command not found? */
   if (k->command == (char *)NULL) {
@@ -424,10 +453,11 @@ static VAR *getvar(char *name, int cr)
   	s_error("script \"%s\": out of memory\r\n", curenv->scriptname);
   	cleanup_termios(1);
   }
-  if (end)
+  if (end) {
 	end->next = v;
-  else
+  } else {
   	curenv->vars = v;	
+  }
   v->next = VNULL;
   v->value = 0;
   return(v);
@@ -437,7 +467,9 @@ static int getnum(char *text)
 {
   int val;
 
-  if ((val = atoi(text)) != 0 || *text == '0') return(val);
+  if ((val = atoi(text)) != 0 || *text == '0') {
+    return(val);
+  }
   return(getvar(text, 0)->value);
 }
 
@@ -466,10 +498,11 @@ static int readscript(char *s)
   			s_error("script %s: out of memory\r\n", s);
   			cleanup_termios(1);
   	}
-  	if (prev)
-  		prev->next = tl;
-  	else
-  		curenv->lines = tl;
+  	if (prev) {
+  	    prev->next = tl;
+	} else {
+  	    curenv->lines = tl;
+	}
   	tl->next = (LINE*)0;
   	tl->labelcount = 0;
   	tl->lineno = no;
@@ -510,8 +543,12 @@ static char *strsave(char *s)
   int len;
 
   len = strlen(s);
-  if (len && s[len - 1] == '\n') s[--len] = 0;
-  if ((t = (char *)malloc(len + 1)) == (char *)0) return(t);
+  if (len && s[len - 1] == '\n') {
+    s[--len] = 0;
+  }
+  if ((t = (char *)malloc(len + 1)) == (char *)0) {
+    return(t);
+  }
   strcpy(t, s);
   return(t);
 }
@@ -526,7 +563,9 @@ static char *getword(char **s)
   int sawq = 0;
   char *env, envbuf[32];
 
-  if (**s == 0) return(CNULL);
+  if (**s == 0) {
+    return(CNULL);
+  }
 
   for(len = 0; len < 81; len++) {
   	if (sawesc && t[len]) {
@@ -598,7 +637,9 @@ static char *getword(char **s)
   buf[idx] = 0;	
   (*s) += len;
   skipspace(s);	
-  if (sawesc || sawq) syntaxerr("(badly formed word)");
+  if (sawesc || sawq) {
+    syntaxerr("(badly formed word)");
+  }
   return(buf);
 }
 

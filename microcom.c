@@ -32,8 +32,6 @@ struct termios pots; /* old port termios settings to restore */
 struct termios sots; /* old stdout/in termios settings to restore */
 
 
-
-
 void init_comm(struct termios *pts) {
    /* some things we want to set arbitrarily */
    pts->c_lflag &= ~ICANON; 
@@ -61,12 +59,10 @@ void init_comm(struct termios *pts) {
   /* set hardware flow control by default */
   /*pts->c_cflag |= CRTSCTS;  
   pts->c_iflag &= ~(IXON | IXOFF | IXANY);*/
-  
-  
+    
   /* set 9600 bps speed by default */
   cfsetospeed(pts, B9600);
-  cfsetispeed(pts, B9600);
-  
+  cfsetispeed(pts, B9600);  
 }
 
 void init_stdin(struct termios *sts) {
@@ -90,12 +86,12 @@ int open_logFile() {
       fprintf(stderr,"log enabled\n");
     } else {
       error = error;
-      printf("Cannot open microcom.log error %d (%m)\n",error);
+      ERROR_MSG("Cannot open microcom.log error %d (%m)",error);
       /*write(STDOUT_FILENO, "Cannot open microcom.log\n", 26);*/
     }
   } else {
     /* file already opened */
-    fprintf(stderr,"file already opened\n");
+    WARNING_MSG("file already opened");
   }
     
   return error;
@@ -106,11 +102,11 @@ int close_logFile() {
   if (flog != 0) {    
     if (fclose(flog) != 0) {
       error = errno;
-      fprintf(stderr,"error %d (%m) closing the log file\n",error);
+      ERROR_MSG("error %d (%m) closing the log file",error);
     }
     flog = 0; /* set to null anyway to be able to open a new one */
   } else {
-    fprintf(stderr,"there is no log file opened\n");
+    WARNING_MSG("there is no log file opened\n");
   }
   return error;
 }
@@ -166,20 +162,17 @@ int main(int argc, char *argv[]) {
   for (i = 1; i < argc; i++) {
     if (strncmp(argv[i], "-S", 2) == 0) {
       script = 1; /* set script flag */
-      if (argv[i][2] != '\0') /* we have a new scriptname */
-	strncpy(scr_name, &argv[1][2], MAX_SCRIPT_NAME);
-      //continue;
-    }
-    else if (strncmp(argv[i], "-D", 2) == 0) {
-      if (argv[i][2] != '\0') /* we have a device */
-	strncpy(device, &argv[i][2], MAX_DEVICE_NAME);
-      //continue;
-    }
-    else if (strncmp(argv[i], "-?", 2) == 0 ||
-	strncmp(argv[i], "-H", 2) == 0) {
+      if (argv[i][2] != '\0') { /* we have a new scriptname */
+         strncpy(scr_name, &argv[1][2], MAX_SCRIPT_NAME);      
+      }
+    } else if (strncmp(argv[i], "-D", 2) == 0) {
+      if (argv[i][2] != '\0') { /* we have a device */
+         strncpy(device, &argv[i][2], MAX_DEVICE_NAME);      
+      }
+    } else if (strncmp(argv[i], "-?", 2) == 0 ||
+      strncmp(argv[i], "-H", 2) == 0) {
       main_usage(0, "", "");
-    }
-    else if (strncmp(argv[i], "-L", 2) == 0) {      
+    } else if (strncmp(argv[i], "-L", 2) == 0) {      
       open_logFile();      
     }
   }   
@@ -244,5 +237,4 @@ int main(int argc, char *argv[]) {
   tcsetattr(STDIN_FILENO, TCSANOW, &sots);
 
   exit(0);
-
 }

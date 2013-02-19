@@ -31,6 +31,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <assert.h>
+#include "debug.h"
 
 #define MAX_SCRIPT_NAME 20 /* maximum length of the name of the script file */
 #define MAX_DEVICE_NAME 20 /* maximum length of the name of the /dev comm port driver */

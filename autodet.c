@@ -30,7 +30,6 @@ int autodetect(char *device) {
   struct timeval tv;
 
   char    buf[LOCAL_BUF + 1]; /* we'll add a '\0' */
-  //char device[LOCAL_BUF];
   struct  termios pts;  /* new comm port settings */
   struct termios pots; /*old comm port settings */
   struct  termios sts;  /* new stdin settings */
@@ -38,14 +37,13 @@ int autodetect(char *device) {
   
   tv.tv_sec = 1;
   tv.tv_usec = 0;
-
-  //sprintf(device, "/dev/ttyS%1d", port);
-  printf("Try %s\n", device);
+  
+  INFO_MSG("Try %s", device);
 
   pf = open(device, O_RDWR);
   if (pf < 0) {
      const int error = errno;
-     printf("open %s error %d (%m)\n", device,error);
+     ERROR_MSG("open %s error %d (%m)", device,error);
      return 0;
   }
 
@@ -76,12 +74,12 @@ int autodetect(char *device) {
     buf[i + 1] = '\0';
     printf(buf);
     if (strstr(buf, "OK") != NULL) {
-      printf("Modem found on %s\n\n", device);
+      NOTICE_MSG("Modem found on %s", device);
       retval = 1;
     }
   }
   else {
-    printf("%s not responding\n\n", device);
+    NOTICE_MSG("%s not responding\n\n", device);
   }
 
   tcsetattr(pf, TCSANOW, &pots);
