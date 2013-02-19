@@ -65,7 +65,7 @@ static __inline void dumpMemory(const char *memoryName,const void *address, unsi
     LOGGER(LOG_DEBUG,SIMPLE_DEBUG_LOG_HEADER " *** end of memory dump of %s (size = %d bytes) ***" DEBUG_EOL,memoryName,size);
 }
 
-#define DEBUG_DUMP_MEMORY(Var,Size) FILTER dumpMemory(#Var,Var,Size)
+#define DEBUG_DUMP_MEMORY(Var,Size) dumpMemory(#Var,Var,Size)
 
 #else
 

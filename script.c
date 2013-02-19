@@ -42,6 +42,8 @@
 #include "microcom.h"
 #include "script.h"
 
+extern int script;
+
 /* public functions */
 void script_init(char* s);
 int script_process(S_ORIGINATOR orig, char* buf, int size);
@@ -60,6 +62,7 @@ static void syntaxerr(char *s);
 
 ENV *curenv;		/* Execution environment */  
 #define INBUF_SIZE 1024
+#define OUTBUF_SIZE 255
 char in_buffer[INBUF_SIZE];
 int in_index = 0;
 
@@ -108,13 +111,14 @@ void script_init(char* s) {
      freemem();
      free(curenv);
   }
+  DEBUG_MSG("script_init done");
 }  
 
 int script_process(S_ORIGINATOR orig, char* buf, int size) {
   char* ptr;
   
   switch (orig) {
-  case S_TIMEOUT:      /* run newxt line in the script */   
+  case S_TIMEOUT:      /* run next line in the script */   
     buf[0] = '\0';
     ptr = script_do_line();
     if (ptr != NULL) {
@@ -211,6 +215,7 @@ char* doinc(char *text)
 
 char* dosend(char *text)
 {
+  INFO_MSG("sending %s...",text);
   return text;
 }
 
@@ -260,10 +265,82 @@ char* doexpect(char *text)
   /* look for our string */
   const char *found = strstr(in_buffer, text);
   if (found != NULL) {
+    DEBUG_MSG("expected string %s found !",text);
     curenv->in_timeout = 0;
     in_buffer[0] = '\0';
     in_index = 0;
     return NULL;
+  }
+  
+  /* timeout */
+  if (curenv->in_timeout == 0) {
+    in_buffer[0] = '\0';
+    in_index = 0;
+    sprintf(temp, "Error expecting string %s", text);
+    return doprint(temp);
+  }
+  
+  /* nothing arrived, just clean the in_buffer; keep the last part of the buffer  */
+  if (strlen(in_buffer) > strlen(text)) {
+    strcpy(temp, &in_buffer[in_index - strlen(text)]);
+    strcpy(in_buffer, temp);
+    in_index = strlen(in_buffer);
+  }
+  return NULL;
+}
+
+char* dosendif(char *text)
+{
+  char temp[INBUF_SIZE];
+  char expected[INBUF_SIZE];
+  static char toSend[OUTBUF_SIZE];
+  int i;
+  char *word = CNULL;
+  
+  word = getword(&text);
+  if (word != CNULL) {
+    strcpy(expected,word);
+  } else {
+    syntaxerr("(sendif first args)"); 
+  }
+  
+  word = getword(&text);
+  if (word != CNULL) {
+     strcpy(toSend,word);
+  } else {
+    syntaxerr("(sendif second args)"); 
+  }
+  
+  if (curenv->in_timeout == 0) {
+    DEBUG_MSG("Start waiting for %s",text);
+    sprintf(temp, "Start waiting for %s", text);
+    doprint(temp);
+    curenv->in_timeout = 60;
+  } else {
+    curenv->in_timeout--;
+  }
+  if (curenv->in_timeout % 10 == 0) {
+    INFO_MSG("time out (%d) waiting for %s", curenv->in_timeout,text);
+    sprintf(temp, "timeout = %d", curenv->in_timeout);
+    doprint(temp);
+  }
+
+  /* clean in_buffer of '\0' */
+  for (i = 0; i < in_index; i++) {
+    if (in_buffer[i] == '\0') {
+      in_buffer[i] = ' ';
+    }
+  }
+  in_buffer[in_index] = '\0';
+
+  /* look for our string */
+  const char *found = strstr(in_buffer, expected);
+  if (found != NULL) {
+    DEBUG_MSG("expected string %s found ! => send %s",expected,toSend);
+    curenv->in_timeout = 0;
+    in_buffer[0] = '\0';
+    in_index = 0;
+    return toSend;
   }
   
   /* timeout */
@@ -380,6 +457,12 @@ char* dogoto(char* text) {
   return NULL;
 }
   
+char* doexit(char* text) {
+  script = 0; /* end script execution */
+  NOTICE_MSG("script ended"); 
+  return NULL;
+}
+
 /* KEYWORDS */
 struct kw {
   char *command;
@@ -392,13 +475,14 @@ struct kw {
   { "goto",	dogoto },
 //  { "gosub",	dogosub },
 //  { "return",	doreturn },
-//  { "exit",	doexit },
+  { "exit",	doexit },
   { "print",	doprint },
   { "set",	doset },
   { "inc",	doinc },
   { "dec",	dodec },
   { "if",	doif },
   { "timeout",	dotimeout },
+  { "sendif",	dosendif },  
 //  { "verbose",	doverbose },
 //  { "sleep",	dosleep },
 //  { "break",	dobreak },
@@ -650,11 +734,4 @@ static char *getword(char **s)
   }
   return(buf);
 }
-
-
-
-
-
-
-
 

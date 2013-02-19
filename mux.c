@@ -69,10 +69,11 @@ void mux_loop(int pf) {
       /* pf has characters for us */
       i = read(pf, buf, BUFSIZE);
       if (i > 0) {
+	DEBUG_DUMP_MEMORY(buf,i);
 	write(STDOUT_FILENO, buf, i);
 	if (flog != 0) {
 	   fwrite(buf, 1, i, flog);
-	}
+	}	
 	if (script) {
 	  i = script_process(S_DCE, buf, i);
 	  if (i > 0) {
