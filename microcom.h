@@ -36,6 +36,14 @@
 #define MAX_SCRIPT_NAME 20 /* maximum length of the name of the script file */
 #define MAX_DEVICE_NAME 20 /* maximum length of the name of the /dev comm port driver */
 
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 void cook_buf(int fd, char *buf, int num); /* microcom.c */ 
 void mux_loop(int pf); /* mux.c */
 

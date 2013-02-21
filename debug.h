@@ -73,6 +73,7 @@ static __inline void dumpMemory(const char *memoryName,const void *address, unsi
 #define DEBUG_MSG(fmt,...)
 #define DEBUG_MARK
 #define DEBUG_VAR(x,f) 
+#define DEBUG_VAR_BOOL(Var)
 #define DEBUG_DUMP_MEMORY(Var,Size)
 
 #endif /* _DEBUG_ */

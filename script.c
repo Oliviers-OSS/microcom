@@ -63,6 +63,8 @@ static void syntaxerr(char *s);
 
 #define DEFAULT_TIMEOUT 60
 static unsigned int timeout = DEFAULT_TIMEOUT;
+static int exitOnTimeOut = FALSE;
+static int verbose = FALSE;
 
 ENV *curenv;		/* Execution environment */  
 #define INBUF_SIZE 1024
@@ -259,18 +261,23 @@ char* doexpect(char *text)
   char temp[INBUF_SIZE];
   int i;
   
-  if (curenv->in_timeout == 0) {
-    DEBUG_MSG("Start waiting for %s",text);
-    sprintf(temp, "Start waiting for %s", text);
-    doprint(temp);
+  if (curenv->in_timeout == 0) {    
+    sprintf(temp, "Start waiting for \"%s\"", text);
+    DEBUG_MSG("%s",temp);
+    if (verbose) {      
+      doprint(temp);
+    }
     curenv->in_timeout = timeout;
   } else {
     curenv->in_timeout--;
   }
-  if (curenv->in_timeout % 10 == 0) {
-    INFO_MSG("time out (%d) waiting for %s", curenv->in_timeout,text);
-    sprintf(temp, "timeout = %d", curenv->in_timeout);
-    doprint(temp);
+  
+  if (verbose) {
+    if (curenv->in_timeout % 10 == 0) { /* progress */    
+	INFO_MSG("remaining time before time out (%d) waiting for \"%s\"", curenv->in_timeout,text);
+	sprintf(temp, "timeout = %d", curenv->in_timeout);
+	doprint(temp);    
+    }
   }
 
   /* clean in_buffer of '\0' */
@@ -295,7 +302,11 @@ char* doexpect(char *text)
   if (curenv->in_timeout == 0) {
     in_buffer[0] = '\0';
     in_index = 0;
-    sprintf(temp, "Error expecting string %s", text);
+    sprintf(temp, "Error expecting string \"%s\"", text);
+    if (exitOnTimeOut) {
+      mux_clear_sflag();
+      NOTICE_MSG("expect timeout, script ended"); 
+    }
     return doprint(temp);
   }
   
@@ -331,18 +342,22 @@ char* dosendif(char *text)
   }
   
   if (curenv->in_timeout == 0) {    
-    sprintf(temp, "Start waiting for %s to send %s", expected,toSend);
+    sprintf(temp, "Start waiting for \"%s\" to send \"%s\"", expected,toSend);
     DEBUG_MSG("%s",temp);
-    doprint(temp);
+    if (verbose) {      
+      doprint(temp);
+    }
     curenv->in_timeout = timeout;
   } else {
     curenv->in_timeout--;
   }
   
-  if (curenv->in_timeout % 10 == 0) { /* progress message */
-    sprintf(temp,"time out (%d) waiting for %s to send %s", curenv->in_timeout,expected,toSend);
-    DEBUG_MSG("%s",temp);
-    doprint(temp);
+  if (verbose) {
+    if (curenv->in_timeout % 10 == 0) { /* progress message */
+      sprintf(temp,"remaining time before time out (%d) waiting for \"%s\" to send \"%s\"", curenv->in_timeout,expected,toSend);
+      DEBUG_MSG("%s",temp);
+      doprint(temp);
+    }
   }
 
   /* clean in_buffer of '\0' */
@@ -356,7 +371,7 @@ char* dosendif(char *text)
   /* look for our string */
   const char *found = strstr(in_buffer, expected);
   if (found != NULL) {
-    DEBUG_MSG("expected string %s found ! => send %s",expected,toSend);
+    DEBUG_MSG("expected string \"%s\" found ! => send \"%s\"",expected,toSend);
     curenv->in_timeout = 0;
     in_buffer[0] = '\0';
     in_index = 0;
@@ -367,9 +382,13 @@ char* dosendif(char *text)
   if (curenv->in_timeout == 0) {
     in_buffer[0] = '\0';
     in_index = 0;
-    sprintf(temp, "Error expecting string %s to send %s", expected,toSend);
+    sprintf(temp, "Error expecting string \"%s\" to send \"%s\"", expected,toSend);
     WARNING_MSG("%s",temp);
-    return doprint(temp);
+    if (exitOnTimeOut) {
+      mux_clear_sflag();
+      NOTICE_MSG("sendif timeout, script ended"); 
+    }
+    return doprint(temp);   
   }
   
   /* nothing arrived, just clean the in_buffer; keep the last part of the buffer  */
@@ -383,7 +402,7 @@ char* dosendif(char *text)
 
 char* doexit(char* text) {
   mux_clear_sflag();
-  doprint("Script suspended");
+  doprint("Script ended");
   NOTICE_MSG("script ended"); 
   return NULL;
 }
@@ -497,6 +516,30 @@ char* dotimeout(char* text) {
   return NULL;
 }
 
+char* doexitOnTimeOut(char* text) {
+  char *w = getword(&text);
+  if(w == CNULL) {
+    exitOnTimeOut != exitOnTimeOut;
+  } else {
+    /* set false if the parameters is FALSE, False, false, 0,... else true */
+    exitOnTimeOut = (('f' == w[0]) || ('F' == w[0]) || ('0' == w[0]))?FALSE:TRUE;
+  }
+  DEBUG_VAR_BOOL(exitOnTimeOut);
+  return NULL;
+}
+
+char* doverbose(char* text) {
+  char *w = getword(&text);
+  if(w == CNULL) {
+    verbose != verbose;
+  } else {
+    /* set false if the parameters is FALSE, False, false, 0,... else true */
+    verbose = (('f' == w[0]) || ('F' == w[0]) || ('0' == w[0]))?FALSE:TRUE;
+  }
+  DEBUG_VAR_BOOL(verbose);
+  return NULL;
+}
+
 /* KEYWORDS */
 struct kw {
   char *command;
@@ -517,7 +560,8 @@ struct kw {
   { "if",	doif },
   { "timeout",	dotimeout },
   { "sendif",	dosendif },  
-//  { "verbose",	doverbose },
+  { "timeoutexit" ,doexitOnTimeOut },
+  { "verbose",	doverbose },
 //  { "sleep",	dosleep },
 //  { "break",	dobreak },
 //  { "call",	docall },
