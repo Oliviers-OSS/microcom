@@ -61,6 +61,9 @@ static char *getstring(char **s); /* same as getword but send an empty string in
 static VAR *getvar(char *name, int cr);
 static void syntaxerr(char *s);
 
+#define DEFAULT_TIMEOUT 60
+static unsigned int timeout = DEFAULT_TIMEOUT;
+
 ENV *curenv;		/* Execution environment */  
 #define INBUF_SIZE 1024
 #define OUTBUF_SIZE 255
@@ -230,7 +233,7 @@ char* dosend(char *text)
   return text;
 }
 
-char* dotimeout(char *text)
+char* dosuspend(char *text)
 {
   char *w;
   int val;
@@ -260,7 +263,7 @@ char* doexpect(char *text)
     DEBUG_MSG("Start waiting for %s",text);
     sprintf(temp, "Start waiting for %s", text);
     doprint(temp);
-    curenv->in_timeout = 60;
+    curenv->in_timeout = timeout;
   } else {
     curenv->in_timeout--;
   }
@@ -331,7 +334,7 @@ char* dosendif(char *text)
     sprintf(temp, "Start waiting for %s to send %s", expected,toSend);
     DEBUG_MSG("%s",temp);
     doprint(temp);
-    curenv->in_timeout = 60;
+    curenv->in_timeout = timeout;
   } else {
     curenv->in_timeout--;
   }
@@ -378,9 +381,10 @@ char* dosendif(char *text)
   return NULL;
 }
 
-char* dosuspend(char* text) {
+char* doexit(char* text) {
   mux_clear_sflag();
   doprint("Script suspended");
+  NOTICE_MSG("script ended"); 
   return NULL;
 }
 
@@ -475,9 +479,21 @@ char* dogoto(char* text) {
   return NULL;
 }
   
-char* doexit(char* text) {
-  script = 0; /* end script execution */
-  NOTICE_MSG("script ended"); 
+char* dotimeout(char* text) {
+  char *w = getword(&text);
+  if(w == CNULL) {
+      syntaxerr("(argument expected)");
+  } else {
+    const int val = getnum(w);
+    if (val > 0) {
+      timeout = val;
+      NOTICE_MSG("new time out value set to %u s",timeout);
+    } else {
+      timeout = DEFAULT_TIMEOUT;
+      NOTICE_MSG("new time out value set to default value (%u s)",timeout);
+    }
+  }    
+  
   return NULL;
 }
 
@@ -739,7 +755,7 @@ static char *getstring(char **s)
   			continue;
   		}
   	}
-  	if((!sawq && (t[len] == ' ' || t[len] == '\t')) || t[len] == 0) break;
+  	if((!sawq && (t[len] == ' ' || t[len] == '\t')) || t[len] == '\0') break;
   	buf[idx++] = t[len];
   }
   buf[idx] = 0;	
