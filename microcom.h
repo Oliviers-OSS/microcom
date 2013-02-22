@@ -64,6 +64,11 @@ void main_usage(int exitcode, char *str, char *dev);
 int open_logFile();
 int close_logFile();
 
+#define DEFAULT_TIMEOUT 60
+
+/* options */
+#define OPTION_LOG_FILTER	(1<<0)
+
 #endif /* MICROCOM_H */
 
 

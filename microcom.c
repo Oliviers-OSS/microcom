@@ -25,12 +25,12 @@ int crnl_mapping; //0 - no mapping, 1 mapping
 int script = 0; /* script active flag */
 char scr_name[MAX_SCRIPT_NAME] = "script.scr"; /* default name of the script */
 char device[MAX_DEVICE_NAME]; /* serial device name */
-//int logFlag = 0; /* log active flag */
-FILE* flog;   /* log file */
+FILE* flog = NULL;   /* log file */
 int  pf = 0;  /* port file descriptor */
 struct termios pots; /* old port termios settings to restore */
 struct termios sots; /* old stdout/in termios settings to restore */
-
+extern unsigned int timeout; /* timeout value used when waiting for a string */
+unsigned int options = 0x0; /* programs'options flags */
 
 void init_comm(struct termios *pts) {
    /* some things we want to set arbitrarily */
@@ -80,10 +80,11 @@ void init_stdin(struct termios *sts) {
 int open_logFile() {
   const char *filename = "microcom.log";
   int error = EXIT_SUCCESS;
-  if (flog != 0) {
+  if (NULL == flog) {
     flog = fopen(filename, "a");    
-    if (flog != (FILE *)0) {
+    if (flog != (FILE *)NULL) {
       fprintf(stderr,"log enabled\n");
+      DEBUG_MSG("loggin to file %s...",filename);
     } else {
       error = error;
       ERROR_MSG("Cannot open microcom.log error %d (%m)",error);
@@ -91,7 +92,7 @@ int open_logFile() {
     }
   } else {
     /* file already opened */
-    WARNING_MSG("file already opened");
+    WARNING_MSG("file already opened (0x%p)",flog);
   }
     
   return error;
@@ -104,7 +105,7 @@ int close_logFile() {
       error = errno;
       ERROR_MSG("error %d (%m) closing the log file",error);
     }
-    flog = 0; /* set to null anyway to be able to open a new one */
+    flog = NULL; /* set to null anyway to be able to open a new one */
   } else {
     WARNING_MSG("there is no log file opened\n");
   }
@@ -175,8 +176,22 @@ int main(int argc, char *argv[]) {
       main_usage(0, "", "");
     } else if (strncmp(argv[i], "-L", 2) == 0) {      
       open_logFile();      
+    } else if (strncmp(argv[i], "-F", 2) == 0) {
+      options |= OPTION_LOG_FILTER;
+    } else if (strncmp(argv[i], "-t", 2) == 0) {
+      if (argv[i][2] != '\0') {
+	const int value = atoi(argv[i]+2);
+	if (value >= 1) {
+	  timeout = value;
+	} else {
+	  fprintf(stderr,"invalid argument (%d) to set initial time out value\n",value);
+	}
+	DEBUG_VAR(timeout,"%d");
+      } else {
+	fprintf(stderr,"missing argument to set initial time out value\n");
+      }
     }
-  }   
+  } /* for (i = 1; i < argc; i++) */  
 
   if (strlen(device) == 0) {
     /* if no device was passed on the command line,

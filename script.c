@@ -61,9 +61,8 @@ static char *getstring(char **s); /* same as getword but send an empty string in
 static VAR *getvar(char *name, int cr);
 static void syntaxerr(char *s);
 
-#define DEFAULT_TIMEOUT 60
-static unsigned int timeout = DEFAULT_TIMEOUT;
-static int exitOnTimeOut = FALSE;
+unsigned int timeout = DEFAULT_TIMEOUT;
+static int exitOnTimeOut = TRUE;
 static int verbose = FALSE;
 
 ENV *curenv;		/* Execution environment */  
@@ -291,7 +290,7 @@ char* doexpect(char *text)
   /* look for our string */
   const char *found = strstr(in_buffer, text);
   if (found != NULL) {
-    DEBUG_MSG("expected string %s found !",text);
+    DEBUG_MSG("expected string \"%s\" found in \"%s\" !",text,in_buffer);
     curenv->in_timeout = 0;
     in_buffer[0] = '\0';
     in_index = 0;
@@ -371,7 +370,7 @@ char* dosendif(char *text)
   /* look for our string */
   const char *found = strstr(in_buffer, expected);
   if (found != NULL) {
-    DEBUG_MSG("expected string \"%s\" found ! => send \"%s\"",expected,toSend);
+    DEBUG_MSG("expected string \"%s\" found in \"%s\" ! => send \"%s\"",expected,in_buffer,toSend);
     curenv->in_timeout = 0;
     in_buffer[0] = '\0';
     in_index = 0;

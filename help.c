@@ -327,7 +327,14 @@ void cook_buf(int fd, char *buf, int num) {
     while ((current < num) && (buf[current] != 0x7e)) current++;
     /* and write the sequence before esc char to the comm port */
     if (current) {
-      write (fd, buf, current);
+      DEBUG_DUMP_MEMORY(buf,current);
+      const ssize_t written = write (fd, buf, current);
+      if (written == -1) {
+	const int error = errno;
+	ERROR_MSG("error writting to device %d (%m)",error);
+      } else if (written != current) {
+	ERROR_MSG("error writting to device only %d bytes written",written);
+      }
     }
 
     if (current < num) { /* process an escape sequence */

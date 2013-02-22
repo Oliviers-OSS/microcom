@@ -25,9 +25,26 @@
 extern int script;
 extern char scr_name[];
 extern FILE* flog;
+extern unsigned int options;
 
 void mux_clear_sflag(void) {
   script = 0;
+}
+
+static inline char *PrintableBuffer(const char *buffer,const size_t l, size_t *size) {
+  static char printable[BUFSIZE+1];
+  const char *limit = buffer + l;
+  const char *i = buffer;
+  char *j = printable;
+  for(i=buffer;i<limit;i++) {
+    if (isprint(*i)) {
+      *j = *i;
+      j++;
+    } 
+  }
+  *size = j - printable;
+  *j = '\0';  
+  return printable;
 }
 
 /* main program loop */
@@ -69,11 +86,28 @@ void mux_loop(int pf) {
       /* pf has characters for us */
       i = read(pf, buf, BUFSIZE);
       if (i > 0) {
-	DEBUG_DUMP_MEMORY(buf,i);
-	write(STDOUT_FILENO, buf, i);
-	if (flog != 0) {
-	   fwrite(buf, 1, i, flog);
-	}	
+	if (options & OPTION_LOG_FILTER) {
+	  /* only printable characters */
+	  size_t size = 0;
+	  char *printable = PrintableBuffer(buf,i,&size);
+	  DEBUG_MSG("received printable buffer = %s",printable);
+	  if (flog != NULL) {
+	    printable[size] = '\n';
+	    printable[size+1] = '\0';
+	    const size_t written = fwrite(printable, 1, size, flog);
+	    if (written != size) {
+	      const int error = errno;
+	      DEBUG_MSG("error writting log file, only %u characters written, errno = %d",written,error);
+	    }
+	  }	  
+	} else {
+	  /* raw memory dump */
+	  DEBUG_DUMP_MEMORY(buf,i);
+	  if (flog != 0) {
+	    fwrite(buf, 1, i, flog);
+	  }
+	}
+	write(STDOUT_FILENO, buf, i);		
 	if (script) {
 	  i = script_process(S_DCE, buf, i);
 	  if (i > 0) {
