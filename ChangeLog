@@ -1,0 +1,71 @@
+Date:   Sat Feb 23 17:30:23 2013 +0100
+
+    use getopt_long now to parse the command line.
+    small corrections in the index.html documentation file.
+
+Date:   Fri Feb 22 21:54:35 2013 +0100
+
+    added control and traces in the send data funtion.
+    new cmd line option F to enable filter (keep only printable characters) when logging data from the serial link.
+    new cmd line option t to set the initial value of the time out.
+    new log data (in & out) management.
+    index.html updated.
+
+Date:   Thu Feb 21 14:37:47 2013 +0100
+
+    add verbose mode when running a script
+    add exit on time out option when running a script
+    missing DEBUG_VAR_BOOL macro added when building without the _DEBUG_ symbol defined
+    symbols TRUE & FALSE added
+
+Date:   Thu Feb 21 10:30:26 2013 +0100
+
+    suspend "renamed" to exit
+    timeout "renamed" to suspend
+    timeout now set the time out value used by expect and sendif
+    index.html updated
+
+Date:   Tue Feb 19 19:29:21 2013 +0100
+
+    new function getstring return an empty string instead of NULL
+     (unlike getword) to allow sending of only a carriage return.
+    a few traces added or completed.
+
+Date:   Tue Feb 19 12:34:18 2013 +0100
+
+    new script commands: sendif & exit , a few debug traces added
+
+Date:   Tue Feb 19 09:53:58 2013 +0100
+
+    .gitignore added.
+    script filename read from command line bug corrected.
+    memory allocation test added in script_init function.
+
+Merge: d1bb3fe 0d0d42a
+Date:   Tue Feb 19 06:30:22 2013 +0100
+
+    Merge https://github.com/Oliviers-OSS/microcom
+
+Date:   Tue Feb 19 06:24:08 2013 +0100
+
+    new program's traces management.
+    a bit of code reformatting and cleanup.
+
+Date:   Tue Feb 19 05:32:11 2013 +0100
+
+    new logFile management: logFlag removed, activation from cmd line, a bit of refactoring.
+    new prompt to avoid confusion with the program output received by the serial link.
+    new default values: 9600 8N1 no control flow nor mapping carriage return to new line on output.
+    a few traces added.
+
+Date:   Wed Feb 13 11:16:55 2013 -0800
+
+    Create README.md
+
+Date:   Tue Feb 12 02:09:17 2013 +0100
+
+    first set of patchs: better error messages, no more warning during build, new Makefile, ttyUSBx management
+
+Date:   Tue Feb 12 00:31:29 2013 +0100
+
+    Initial 1.0.2 version from http://sources.buildroot.net/
