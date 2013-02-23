@@ -65,12 +65,24 @@ Router
 
 
 
+
+
+
+
+
+
                           Project</a>. We managed to bring the
                         executable size down under 17k, no ncurses
                         library support required. <br>
                         This software is released under <a
                           href="javascript:wopen('http://www.gnu.org/copyleft/gpl.html')">GNU
 General
+
+
+
+
+
+
 
 
 
@@ -88,6 +100,12 @@ General
                         when an expected string matchs.<br>
                         - suspend script command renamed to exit.<br>
                         - timeout <font face="Verdana, Sans-Serif">script
+
+
+
+
+
+
 
 
 
@@ -139,7 +157,7 @@ General
                         <a name="usage"></a><b><font size="+1">3. Usage</font></b>
                       </p>
                       <p>The command to start microcom is: </p>
-                      <pre>microcom [options]<br> [options] include:<br>    -Ddevfile       use the specified serial port device;<br>                    if a port is not provided, microcom<br>                        will try to autodetect a modem<br>           example: -D/dev/ttyS3<br>    -S              run script from script.scr (default)<br>    -Sscrfile       run script from scrfile<br>    -t90            set initial time out to 90 s<br>    -F              log only printable charaters <br><br>microcom provides session logging in microcom.log file<br><br>WinDOS to Linux mapping of the serial ports is as follows<br><br>	WinDOS			Linux<br>	-----------------------------------<br>	com1			/dev/ttyS0<br>	com2			/dev/ttyS1<br>	com3			/dev/ttyS2<br>	com4			/dev/ttyS3<br><br>Usage examples:<br>	microcom              - microcom will try to autodetect a modem<br>	microcom -D/dev/ttyS3 - run microcom on /dev/ttyS3 (com4 equiv.) <br>	microcom -S           - start the default script.scr script<br>	microcom -Smyscript   - run the script from myscript file<br></pre>
+                      <pre>microcom [options]<br> [options] include:<br>    -Ddevfile       use the specified serial port device;<br>                    if a port is not provided, microcom<br>                        will try to autodetect a modem<br>           example: -D/dev/ttyS3<br>    -S              run script from script.scr (default)<br>    -Sscrfile       run script from scrfile<br>    -t90            set initial time out to 90 s<br>    -F              log only printable charaters <br><br>microcom provides session logging in microcom.log file.<br><br>WinDOS to Linux mapping of the serial ports is as follows<br><br>	WinDOS			Linux<br>	-----------------------------------<br>	com1			/dev/ttyS0<br>	com2			/dev/ttyS1<br>	com3			/dev/ttyS2<br>	com4			/dev/ttyS3<br><br>Usage examples:<br>	microcom              - microcom will try to autodetect a modem<br>	microcom -D/dev/ttyS3 - run microcom on /dev/ttyS3 (com4 equiv.) <br>	microcom -S           - start the default script.scr script<br>	microcom -Smyscript   - run the script from myscript file<br></pre>
                       <p><br>
                         <a name="setup"></a><b><font size="+1">4. Setup
                             and Help</font></b> </p>
@@ -220,10 +238,16 @@ General
                       script is restarted automatically. <br>
                       Example:
                       <pre><font face="Courier New,Courier">    if a &lt; 10 exit<br></font></pre>
-                      <font face="Courier New,Courier"><span
+                      <font face="Verdana, Sans-Serif"><span
                           style="text-decoration: underline;">Note</span>:
                         in versions below 1.03, this </font><span
-                        style="font-family: Courier New,Courier;">function
+                        style="font-family: Verdana, Sans-Serif;">function
+
+
+
+
+
+
 
 
 
@@ -248,19 +272,24 @@ General
 
 
 
+
+
+
+
+
+
                             program</b> </font><br>
                         Use suspend to wait for a specified number of
                         seconds: <br>
                         Example: </p>
                       <pre><font face="Courier New,Courier">    #wait for 7 seconds<br>    suspend 7<br></font></pre>
                       <font face="Verdana, Sans-Serif"><font
-                          face="Courier New,Courier"><span
+                          face="Verdana, Sans-Serif"><span
                             style="text-decoration: underline;">Note</span>:
                           in versions below 1.03,</font></font><font
-                        face="Courier New,Courier"> the suspend command
+                        face="Verdana, Sans-Serif"> the suspend command
                         was ending the script, this function was named
                         timeout.</font><br>
-                      <br>
                       <p><b>5.2.6 </b><font face="Verdana, Sans-Serif"><b>Timeout</b>
                         </font><br>
                         Use timeout to set the time out value (in
@@ -270,32 +299,27 @@ General
                         Example: </p>
                       <pre><font face="Courier New,Courier">    # set time out to 15 minutes<br>    timeout 900<br></font></pre>
                       <font face="Verdana, Sans-Serif"><font
-                          face="Verdana, Sans-Serif"><font face="Courier
-                            New,Courier"><span style="text-decoration:
-                              underline;">Note</span>: in versions below
-                            1.03,</font></font><font face="Courier
-                          New,Courier"> the timeout command was
-                          suspending the script.<br>
-                          <br>
-                        </font></font><font face="Verdana, Sans-Serif"><b>5.2.7
+                          face="Verdana, Sans-Serif"><span
+                            style="text-decoration: underline;">Note</span>:
+                          in versions below 1.03,</font></font><font
+                        face="Verdana, Sans-Serif"> the timeout command
+                        was suspending the script during the specified
+                        amount of time. Use suspend now.<br>
+                        <br>
+                      </font><font face="Verdana, Sans-Serif"><b>5.2.7
                           TimeoutExit<br>
-                        </b><font face="Verdana, Sans-Serif"></font></font><font
-                        face="Verdana, Sans-Serif">
-                        Use timeoutexit to enable or disable&nbsp;the
-                        script ending if the
-                        expected string has not been found during the
-                        waiting period. <br>
+                        </b></font><font face="Verdana, Sans-Serif"> Use
+                        timeoutexit to enable or disable&nbsp;the script
+                        ending if the expected string has not been found
+                        during the waiting period. <br>
                         The parameter is optional and could a boolean
-                        value or an integer (0
-                        means false, others values, true). If there is
-                        no parameter then the </font><font
-                        face="Verdana, Sans-Serif"><font face="Verdana,
-                          Sans-Serif">timeoutexit
-                          change its value from true to false and vice
-                          versa (currently its
-                          initial value is false, i.e. go one with the
-                          next instruction on time
-                          out).<br>
+                        value or an integer (0 means false, others
+                        values, true). If there is no parameter then the
+                      </font><font face="Verdana, Sans-Serif"><font
+                          face="Verdana, Sans-Serif">timeoutexit change
+                          its value from true to false and vice versa
+                          (currently its initial value is false, i.e. go
+                          one with the next instruction on time out).<br>
                         </font></font><font face="Verdana, Sans-Serif">
                         <pre><font face="Courier New,Courier">    # exit on timeout<br>    timeoutexit true</font></pre>
                       </font><font face="Verdana, Sans-Serif"><font
@@ -306,11 +330,10 @@ General
                       the verbose mode of scripts running, display
                       of&nbsp;progress message during waits for example.<br>
                       <font face="Verdana, Sans-Serif"><font
-                          face="Verdana, Sans-Serif">The
-                          parameter is optional and could be a boolean
-                          value or an integer (0 means
-                          false, others values, true). If there is no
-                          parameter then the </font><font
+                          face="Verdana, Sans-Serif">The parameter is
+                          optional and could be a boolean value or an
+                          integer (0 means false, others values, true).
+                          If there is no parameter then the </font><font
                           face="Verdana, Sans-Serif"><font
                             face="Verdana, Sans-Serif">timeoutexit
                             change its value from true to false and vice
@@ -380,12 +403,24 @@ General
 
 
 
+
+
+
+
+
+
                             Distribution</font></b> <br>
                         &nbsp; </p>
                       <blockquote><i>This program is free software; you
                           can redistribute it and/or modify it under the
                           terms of the <a
                             href="javascript:wopen('http://www.gnu.org/copyleft/gpl.html')">GNU
+
+
+
+
+
+
 
 
 
@@ -419,6 +454,12 @@ General
                             disk</font></b> </p>
                       <p><a
                           href="javascript:wopen('http://www.linuxrouter.org')">Linux
+
+
+
+
+
+
 
 
 

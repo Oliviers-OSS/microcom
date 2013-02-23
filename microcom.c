@@ -20,6 +20,7 @@
 ** Rev. 1.02 - June 2000
 ****************************************************************************/
 #include "microcom.h"
+#include <getopt.h>
 
 int crnl_mapping; //0 - no mapping, 1 mapping
 int script = 0; /* script active flag */
@@ -126,18 +127,101 @@ int close_logFile() {
  int main(int argc, char *argv[]) -
       main program function
 ********************************************************************/
-void main_usage(int exitcode, char *str, char *dev) {
-  fprintf(stderr, "\nUsage: microcom [options]\n"
+
+static const struct option longopts[] = {
+    {"device", required_argument, NULL, 'D'},
+    {"script", optional_argument, NULL, 'S'},
+    {"log", no_argument, NULL, 'L'},
+    {"timeout", required_argument, NULL, 't'},    
+    {"filter", no_argument, NULL, 'f'},    
+    {"help", no_argument, NULL, 'h'},
+    {"version", no_argument, NULL, 'v'},
+    {NULL, 0, NULL, 0}
+};
+
+static void main_help(FILE *output) {
+  fprintf(output, "\nUsage: microcom [options]\n"
 	  " [options] include:\n"
-	  "    -Ddevfile       use the specified serial port device;\n" 
-          "                    if a port is not provided, microcom\n"
-	  "                        will try to autodetect a modem\n"
-	  "           example: -D/dev/ttyS3\n"
-	  "    -S              run script from script.scr (default)\n"
-	  "    -Sscrfile       run script from scrfile\n\n"
-	  "microcom provides session logging in microcom.log file\n");
+	  "\t-D<devfile>, --device=<devfile> use the specified serial port device;\n" 
+          "\t                                if a port is not provided, microcom\n"
+	  "\t                                will try to autodetect a connected serial device\n"
+	  "\t           example: -D /dev/ttyS3\n"
+	  "\t-S,--script                     run script from script.scr (default)\n"
+	  "\t-S<scrfile>,--script=<scrfile>  run script from scrfile\n"
+	  "\t-t<timeout>,--timeout=<timeout> initial timeout value in seconds\n"
+	  "\t-f,--filter                     enable filter \"printable only characters in logs\" \n"
+	  "\t-h,--help                       printf this help\n"
+	  "\t-v,--version                    display the program's version number\n"
+	  "\t-L,--log                        enable session logging in microcom.log file\n"
+	  "\n");
+}
+
+void main_usage(int exitcode, char *str, char *dev) {
+  main_help(stderr);
   fprintf(stderr, "Exitcode %d - %s %s\n\n", exitcode, str, dev);
   exit(exitcode);
+}
+
+static inline void main_version(void) {
+  printf("microcom v"VERSION"\n");
+  exit(0);
+}
+
+static inline int parse_cmdLine(int argc, char *argv[]) {
+  int error = EXIT_SUCCESS;
+  int optc;
+
+  while (((optc = getopt_long (argc, argv, "D:S::Lt:fhv", longopts, NULL)) != -1) && (EXIT_SUCCESS == error)) {      
+    int param;
+    switch (optc) {
+      case 'D':
+	strncpy(device, optarg, MAX_DEVICE_NAME);	
+	break;
+      case 'S':
+	script = 1; /* set script flag */
+	if (optarg != NULL) {
+	  strncpy(scr_name, optarg, MAX_SCRIPT_NAME);   
+	  DEBUG_VAR(scr_name,"%s");
+	} 
+	break;
+      case 'L':
+	open_logFile();
+	break;
+      case 't': {
+	  const int value = atoi(optarg);
+	  if (value >= 1) {
+	    timeout = value;
+	  } else {
+	    fprintf(stderr,"invalid argument (%d) to set initial time out value\n",value);
+	    error = EINVAL;
+	  }
+	  DEBUG_VAR(timeout,"%d");
+	}
+	break;
+      case 'f':
+	options |= OPTION_LOG_FILTER;
+	break;
+      case 'h':
+	main_help(stdout);
+	exit(error);
+	break;
+      case 'v':
+	main_version();
+	break;
+      case '?':	
+	error = EINVAL;
+	exit(error); /* because of current design */
+	break;
+      default:
+	error = EINVAL;
+	fprintf(stderr,"invalid argument (%d)\n",optc);
+	main_help(stderr);
+	exit(error); /* because of current design */
+	break;
+    } /* switch (optc) */
+    
+  } /* while (((optc = getopt_long (argc, argv, "D:S:Lt:fhv", longopts, NULL)) != -1) && (EXIT_SUCCESS == error)) */
+  return error;
 }
 
 /* restore original terminal settings on exit */
@@ -152,6 +236,7 @@ void cleanup_termios(int signal) {
 } 
 
 int main(int argc, char *argv[]) {
+  int error = EXIT_SUCCESS;
   struct  termios pts;  /* termios settings on port */
   struct  termios sts;  /* termios settings on stdout/in */
   struct sigaction sact;/* used to initialize the signal handler */
@@ -160,39 +245,8 @@ int main(int argc, char *argv[]) {
   device[0] = '\0';
 
   /* parse command line */
-  for (i = 1; i < argc; i++) {
-    if (strncmp(argv[i], "-S", 2) == 0) {
-      script = 1; /* set script flag */
-      if (argv[i][2] != '\0') { /* we have a new scriptname */
-         strncpy(scr_name, &argv[i][2], MAX_SCRIPT_NAME);      
-	 DEBUG_VAR(scr_name,"%s");
-      }
-    } else if (strncmp(argv[i], "-D", 2) == 0) {
-      if (argv[i][2] != '\0') { /* we have a device */
-         strncpy(device, &argv[i][2], MAX_DEVICE_NAME);      
-      }
-    } else if (strncmp(argv[i], "-?", 2) == 0 ||
-      strncmp(argv[i], "-H", 2) == 0) {
-      main_usage(0, "", "");
-    } else if (strncmp(argv[i], "-L", 2) == 0) {      
-      open_logFile();      
-    } else if (strncmp(argv[i], "-F", 2) == 0) {
-      options |= OPTION_LOG_FILTER;
-    } else if (strncmp(argv[i], "-t", 2) == 0) {
-      if (argv[i][2] != '\0') {
-	const int value = atoi(argv[i]+2);
-	if (value >= 1) {
-	  timeout = value;
-	} else {
-	  fprintf(stderr,"invalid argument (%d) to set initial time out value\n",value);
-	}
-	DEBUG_VAR(timeout,"%d");
-      } else {
-	fprintf(stderr,"missing argument to set initial time out value\n");
-      }
-    }
-  } /* for (i = 1; i < argc; i++) */  
-
+  error = parse_cmdLine(argc,argv);
+    
   if (strlen(device) == 0) {
     /* if no device was passed on the command line,
        try to autodetect a modem */
@@ -252,5 +306,5 @@ int main(int argc, char *argv[]) {
   tcsetattr(pf, TCSANOW, &pots);
   tcsetattr(STDIN_FILENO, TCSANOW, &sots);
 
-  exit(0);
+  exit(error);
 }
