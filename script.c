@@ -38,9 +38,16 @@
 *****************************************************************************
 ** Rev. 1.0 - Feb. 2000
 ** Rev. 1.02 - June 2000
+** Rev. 1.03 - Feb. 2013
+** Rev. 1.04 - Feb. 2013
 ****************************************************************************/
 #include "microcom.h"
 #include "script.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 
 extern int script;
 
@@ -164,8 +171,6 @@ static char* script_do_line(void) {
   }
   return ptr;
 }
-
-
 
 char* doprint(char *text)
 {
@@ -596,8 +601,6 @@ static char* s_exec(char *text)
   return((*(k->fn))(text));
 }
 
-
-
 /****************************************************************************
  misceleanus library functions
 ****************************************************************************/
@@ -724,6 +727,89 @@ static char *strsave(char *s)
   return(t);
 }
 
+/*
+ * functions for special env. variables
+ * man netdevice for details
+ */ 
+
+static inline const char *getMACAddress(const unsigned int boardNumber) {
+  static char address[18] = {'\0'} ; 
+  static unsigned int number = (unsigned int)(-1);
+  
+  if (boardNumber != number) {
+    address[0] = '\0';
+  }
+  if ('\0' == address[0]) { /* only once for performance reasons */
+    int error = EXIT_SUCCESS;
+    int sock = socket(PF_INET, SOCK_DGRAM, 0);
+    if (sock != -1) {
+      struct ifreq buffer;
+      memset(&buffer, 0x00, sizeof(buffer));
+      sprintf(buffer.ifr_name,"eth%d",boardNumber);
+      /* Get hardware address */
+      if (ioctl(sock, SIOCGIFHWADDR, &buffer) != -1) {
+	char *cursor = address;
+	int i;
+	for(i=0;i<6;i++) {
+	  cursor += sprintf(cursor,"%.2X:",(unsigned char)buffer.ifr_hwaddr.sa_data[i]);
+	}
+	*(cursor-1) = '\0';
+	number = boardNumber;
+      } else {
+	error = errno;
+	fprintf(stderr,"ioctl SIOCGIFHWADDR error %d (%m)\n",error);
+	address[0] = '\0';
+      }
+      close(sock);
+      sock = -1;
+    } else {
+      error = errno;
+      fprintf(stderr,"socket PF_INET error %d (%m)\n",error);
+      address[0] = '\0';
+    }     
+  }  
+  return address;
+}
+
+static inline const char *getIPAddress(const unsigned int boardNumber) {
+  static char address[17] = {'\0'}; 
+  static unsigned int number = (unsigned int)(-1);
+  
+  if (boardNumber != number) {
+    address[0] = '\0';
+  }
+  if ('\0' == address[0]) { /* only once for performance reasons */
+    int error = EXIT_SUCCESS;
+    int sock = socket(PF_INET, SOCK_DGRAM, 0);
+    if (sock != -1) {
+      struct ifreq buffer;
+      memset(&buffer, 0x00, sizeof(buffer));
+      sprintf(buffer.ifr_name,"eth%d",boardNumber);
+      /* Get first IP address */
+      if (ioctl(sock, SIOCGIFADDR, &buffer) != -1) {
+	char *cursor = address;
+	int i;
+	for(i=2;i<6;i++) {
+	  cursor += sprintf(cursor,"%.3u.",(unsigned char)buffer.ifr_addr.sa_data[i]);
+	}
+	*(cursor-1) = '\0';
+	number = boardNumber;
+      } else {
+	error = errno;
+	fprintf(stderr,"ioctl SIOCGIFADDR error %d (%m)\n",error);
+	address[0] = '\0';
+      }
+      close(sock);
+      sock = -1;
+    } else {
+      error = errno;
+      fprintf(stderr,"socket PF_INET error %d (%m)\n",error);
+      address[0] = '\0';
+    }     
+  }  
+  return address;
+}
+
 static char *getstring(char **s)
 {
   static char buf[81];
@@ -731,8 +817,7 @@ static char *getstring(char **s)
   int idx = 0;
   char *t = *s;
   int sawesc = 0;
-  int sawq = 0;
-  char *env, envbuf[32];  
+  int sawq = 0;  
 
   for(len = 0; len < 81; len++) {
   	if (sawesc && t[len]) {
@@ -767,6 +852,9 @@ static char *getstring(char **s)
   			case 'c':
   				buf[idx++] = 255;
   				break;
+			/* extensions to be able to send specials values	*/
+			case '@':
+				break;
   			default:
   				buf[idx++] = t[len];
   				break;
@@ -788,13 +876,27 @@ static char *getstring(char **s)
   		continue;
   	}
   	if (t[len] == '$' && t[len + 1] == '(') {
-  		for(f = len; t[f] && t[f] != ')'; f++)
-  			;
+  		for(f = len; t[f] && t[f] != ')'; f++);
   		if (t[f] == ')') {
+			const char *env  = NULL;
+			char envbuf[32];  
   			strncpy(envbuf, &t[len + 2], f - len - 2);
   			envbuf[f - len - 2] = 0;
   			len = f;
-  			env = "";
+			if (strncmp(envbuf,"@IP",3) == 0) {
+			  const unsigned int boardNumber = (envbuf[3] != '\0')? *(envbuf + 3) - '0' : 0;			  
+			  env = getIPAddress(boardNumber);
+			} else if (strncmp(envbuf,"@MAC",4) == 0) {
+			  const unsigned int boardNumber = (envbuf[4] != '\0')? *(envbuf + 4) - '0' : 0;			  			  
+			  env = getMACAddress(boardNumber);
+			} else {			  ;
+			  if ((env = getenv(envbuf)) == NULL) {
+			    env = "";
+			  }
+			}
+			while((*env) && (idx < sizeof(buf)-1)) {
+			  buf[idx++] = *env++;			  
+			}
   			continue;
   		}
   	}
