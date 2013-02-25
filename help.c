@@ -23,10 +23,11 @@
 
 extern int crnl_mapping; //0 - no mapping, 1 mapping
 extern int script; /* script active flag */
-extern char scr_name[MAX_SCRIPT_NAME]; /* default name of the script */
+extern char scr_name[MAX_SCRIPT_NAME]; /* name of the script */
 extern char device[MAX_DEVICE_NAME]; /* serial device name */
 //extern int logFlag; /* log active flag */
 extern FILE* flog;   /* log file */
+extern char log_file[PATH_MAX]; /* name of the log file */
 
 static int help_state = 0;
 static int in_escape = 0;
@@ -162,7 +163,7 @@ static void help_send_escape(int fd, char c) {
     break;
   case 'l': /* log on/off */    
     if (flog == 0) { /* open log file */
-      open_logFile();
+      open_logFile(log_file);
     }
     else { /* close log file */
       close_logFile();

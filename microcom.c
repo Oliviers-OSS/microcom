@@ -25,6 +25,7 @@
 int crnl_mapping; //0 - no mapping, 1 mapping
 int script = 0; /* script active flag */
 char scr_name[MAX_SCRIPT_NAME] = "script.scr"; /* default name of the script */
+char log_file[PATH_MAX] = "microcom.log"; /* default name of the log file */
 char device[MAX_DEVICE_NAME]; /* serial device name */
 FILE* flog = NULL;   /* log file */
 int  pf = 0;  /* port file descriptor */
@@ -32,6 +33,7 @@ struct termios pots; /* old port termios settings to restore */
 struct termios sots; /* old stdout/in termios settings to restore */
 extern unsigned int timeout; /* timeout value used when waiting for a string */
 unsigned int options = 0x0; /* programs'options flags */
+
 
 void init_comm(struct termios *pts) {
    /* some things we want to set arbitrarily */
@@ -78,17 +80,16 @@ void init_stdin(struct termios *sts) {
    sts->c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
 }
 
-int open_logFile() {
-  const char *filename = "microcom.log";
+int open_logFile() {  
   int error = EXIT_SUCCESS;
   if (NULL == flog) {
-    flog = fopen(filename, "a");    
+    flog = fopen(log_file, "a");    
     if (flog != (FILE *)NULL) {
       fprintf(stderr,"log enabled\n");
-      DEBUG_MSG("loggin to file %s...",filename);
+      DEBUG_MSG("loggin to file %s...",log_file);
     } else {
       error = error;
-      ERROR_MSG("Cannot open microcom.log error %d (%m)",error);
+      ERROR_MSG("Cannot open %s error %d (%m)",log_file,error);
       /*write(STDOUT_FILENO, "Cannot open microcom.log\n", 26);*/
     }
   } else {
@@ -104,7 +105,7 @@ int close_logFile() {
   if (flog != 0) {    
     if (fclose(flog) != 0) {
       error = errno;
-      ERROR_MSG("error %d (%m) closing the log file",error);
+      ERROR_MSG("error %d (%m) closing the log file %s",error,log_file);
     }
     flog = NULL; /* set to null anyway to be able to open a new one */
   } else {
@@ -131,7 +132,7 @@ int close_logFile() {
 static const struct option longopts[] = {
     {"device", required_argument, NULL, 'D'},
     {"script", optional_argument, NULL, 'S'},
-    {"log", no_argument, NULL, 'L'},
+    {"log", optional_argument, NULL, 'L'},
     {"timeout", required_argument, NULL, 't'},    
     {"filter", no_argument, NULL, 'f'},    
     {"help", no_argument, NULL, 'h'},
@@ -153,6 +154,7 @@ static void main_help(FILE *output) {
 	  "\t-h,--help                       printf this help\n"
 	  "\t-v,--version                    display the program's version number\n"
 	  "\t-L,--log                        enable session logging in microcom.log file\n"
+	  "\t-L<logfile>,--log=<logfile>     enable session logging in the specified filename\n"
 	  "\n");
 }
 
@@ -171,7 +173,7 @@ static inline int parse_cmdLine(int argc, char *argv[]) {
   int error = EXIT_SUCCESS;
   int optc;
 
-  while (((optc = getopt_long (argc, argv, "D:S::Lt:fhv", longopts, NULL)) != -1) && (EXIT_SUCCESS == error)) {      
+  while (((optc = getopt_long (argc, argv, "D:S::L::t:fhv", longopts, NULL)) != -1) && (EXIT_SUCCESS == error)) {      
     int param;
     switch (optc) {
       case 'D':
@@ -185,6 +187,10 @@ static inline int parse_cmdLine(int argc, char *argv[]) {
 	} 
 	break;
       case 'L':
+	if (optarg != NULL) {
+	  strncpy(log_file,optarg,PATH_MAX);
+	  DEBUG_VAR(log_file,"%s");
+	}
 	open_logFile();
 	break;
       case 't': {

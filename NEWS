@@ -1,4 +1,1 @@
-Date:   Sat Feb 23 17:30:23 2013 +0100
-
-    use getopt_long now to parse the command line.
-    small corrections in the index.html documentation file.
+the name of the logfile can now be defined in the command line.

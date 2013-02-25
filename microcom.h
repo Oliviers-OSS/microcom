@@ -32,11 +32,14 @@
 #include <termios.h>
 #include <unistd.h>
 #include <assert.h>
+#include <linux/limits.h>
 #include "debug.h"
 
-#define VERSION "1.03"
+#ifndef VERSION
+#define VERSION "1.04"
+#endif /* VERSION */
 
-#define MAX_SCRIPT_NAME 20 /* maximum length of the name of the script file */
+#define MAX_SCRIPT_NAME PATH_MAX /* maximum length of the name of the script file */
 #define MAX_DEVICE_NAME 20 /* maximum length of the name of the /dev comm port driver */
 
 #ifndef TRUE
