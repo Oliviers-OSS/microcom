@@ -48,6 +48,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <unistd.h>
 
 extern int script;
 
@@ -754,17 +755,18 @@ static inline const char *getMACAddress(const unsigned int boardNumber) {
 	  cursor += sprintf(cursor,"%.2X:",(unsigned char)buffer.ifr_hwaddr.sa_data[i]);
 	}
 	*(cursor-1) = '\0';
+	DEBUG_VAR(address,"%s");
 	number = boardNumber;
       } else {
 	error = errno;
-	fprintf(stderr,"ioctl SIOCGIFHWADDR error %d (%m)\n",error);
+	ERROR_MSG("ioctl SIOCGIFHWADDR error %d (%m)\n",error);
 	address[0] = '\0';
       }
       close(sock);
       sock = -1;
     } else {
       error = errno;
-      fprintf(stderr,"socket PF_INET error %d (%m)\n",error);
+      ERROR_MSG("socket PF_INET error %d (%m)\n",error);
       address[0] = '\0';
     }     
   }  
@@ -793,17 +795,18 @@ static inline const char *getIPAddress(const unsigned int boardNumber) {
 	  cursor += sprintf(cursor,"%.3u.",(unsigned char)buffer.ifr_addr.sa_data[i]);
 	}
 	*(cursor-1) = '\0';
+	DEBUG_VAR(address,"%s");
 	number = boardNumber;
       } else {
 	error = errno;
-	fprintf(stderr,"ioctl SIOCGIFADDR error %d (%m)\n",error);
+	ERROR_MSG("ioctl SIOCGIFADDR error %d (%m)\n",error);
 	address[0] = '\0';
       }
       close(sock);
       sock = -1;
     } else {
       error = errno;
-      fprintf(stderr,"socket PF_INET error %d (%m)\n",error);
+      ERROR_MSG("socket PF_INET error %d (%m)\n",error);
       address[0] = '\0';
     }     
   }  
@@ -886,14 +889,29 @@ static char *getstring(char **s)
 			if (strncmp(envbuf,"@IP",3) == 0) {
 			  const unsigned int boardNumber = (envbuf[3] != '\0')? *(envbuf + 3) - '0' : 0;			  
 			  env = getIPAddress(boardNumber);
+			  if ('\0' == env[0]) {
+			    /* work around: 
+			     * may fail if the two network interfaces are directly linked and the remote one is temporary down 
+			     * try again once
+			     */
+			     sleep(2);
+			     env = getIPAddress(boardNumber);
+			  }
 			} else if (strncmp(envbuf,"@MAC",4) == 0) {
 			  const unsigned int boardNumber = (envbuf[4] != '\0')? *(envbuf + 4) - '0' : 0;			  			  
 			  env = getMACAddress(boardNumber);
+			  /* work around: 
+			   * may fail if the two network interfaces are directly linked and the remote one is temporary down 
+			   * try again once
+			   */
+			   sleep(2);
+			   env = getIPAddress(boardNumber);
 			} else {			  ;
 			  if ((env = getenv(envbuf)) == NULL) {
 			    env = "";
 			  }
 			}
+			DEBUG_VAR(env,"%s");
 			while((*env) && (idx < sizeof(buf)-1)) {
 			  buf[idx++] = *env++;			  
 			}

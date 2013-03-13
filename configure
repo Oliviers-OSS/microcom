@@ -682,6 +682,8 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_dependency_tracking
+enable_debug
+enable_modem
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1310,6 +1312,8 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
+  --enable-debug enable debug mode
+  --enable-modem enable modem detection in autodetect mode
 
 Some influential environment variables:
   CC          C compiler command
@@ -4291,6 +4295,48 @@ _ACEOF
 fi
 done
 
+
+# debug
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; case "${enableval}" in
+         yes) enable_debug="yes";;
+          no) enable_debug="no" ;;
+           *) as_fn_error $? "bad value ${enableval} for --enable-debug" "$LINENO" 5  ;;
+         esac
+else
+  enable_debug="no"
+
+fi
+
+if test "$enable_debug" = "yes"; then
+
+$as_echo "#define _DEBUG_ 1" >>confdefs.h
+
+fi
+if test "$enable_debug" = "no"; then
+
+$as_echo "#define NDEBUG 1" >>confdefs.h
+
+fi
+
+# Check whether --enable-modem was given.
+if test "${enable_modem+set}" = set; then :
+  enableval=$enable_modem; case "${enableval}" in
+         yes) enable_modem="yes";;
+          no) enable_modem="no" ;;
+           *) as_fn_error $? "bad value ${enableval} for --enable-modem" "$LINENO" 5  ;;
+         esac
+else
+  enable_modem="no"
+
+fi
+
+if test "$enable_modem" = "yes"; then
+
+$as_echo "#define MODEM_CMD 1" >>confdefs.h
+
+fi
 
 ac_config_files="$ac_config_files Makefile"
 

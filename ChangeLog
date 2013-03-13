@@ -1,5 +1,18 @@
-2013-02-25 Olivier Charloton 
-	* the name of the logfile can now be defined in the command line.
+2013-03-13 19:08:34 +0100 Olivier Charloton 
+
+	* New autodetect procedures to detect a modem or any connected serial device sending data.
+	* Changelog pre-build in the Makefile corrected.
+	* New build option: debug and use of modem commands to detect the right serial port.
+	* Filter flag to display printable only characters corrected to respect the documentation.
+	* Small work around to solve IP address not set when the two network interfaces are directly linked and the remote one is temporary down.
+
+
+2013-02-25 10:59:41 +0100 Olivier Charloton 
+
+	* add the name of the logfile can now be defined in the command line.
+	* configure updated.
+	* Makefile.am modified to start building the ChangeLog file.
+	* index.html documentation file updated.
 
 2013-02-24 19:33:40 +0100 Olivier Charloton 
 

@@ -134,7 +134,7 @@ static const struct option longopts[] = {
     {"script", optional_argument, NULL, 'S'},
     {"log", optional_argument, NULL, 'L'},
     {"timeout", required_argument, NULL, 't'},    
-    {"filter", no_argument, NULL, 'f'},    
+    {"filter", no_argument, NULL, 'F'},    
     {"help", no_argument, NULL, 'h'},
     {"version", no_argument, NULL, 'v'},
     {NULL, 0, NULL, 0}
@@ -150,7 +150,7 @@ static void main_help(FILE *output) {
 	  "\t-S,--script                     run script from script.scr (default)\n"
 	  "\t-S<scrfile>,--script=<scrfile>  run script from scrfile\n"
 	  "\t-t<timeout>,--timeout=<timeout> initial timeout value in seconds\n"
-	  "\t-f,--filter                     enable filter \"printable only characters in logs\" \n"
+	  "\t-F,--filter                     enable filter \"printable only characters in logs\" \n"
 	  "\t-h,--help                       printf this help\n"
 	  "\t-v,--version                    display the program's version number\n"
 	  "\t-L,--log                        enable session logging in microcom.log file\n"
@@ -173,7 +173,7 @@ static inline int parse_cmdLine(int argc, char *argv[]) {
   int error = EXIT_SUCCESS;
   int optc;
 
-  while (((optc = getopt_long (argc, argv, "D:S::L::t:fhv", longopts, NULL)) != -1) && (EXIT_SUCCESS == error)) {      
+  while (((optc = getopt_long (argc, argv, "D:S::L::t:Fhv", longopts, NULL)) != -1) && (EXIT_SUCCESS == error)) {      
     int param;
     switch (optc) {
       case 'D':
@@ -204,7 +204,7 @@ static inline int parse_cmdLine(int argc, char *argv[]) {
 	  DEBUG_VAR(timeout,"%d");
 	}
 	break;
-      case 'f':
+      case 'F':
 	options |= OPTION_LOG_FILTER;
 	break;
       case 'h':
@@ -246,43 +246,26 @@ int main(int argc, char *argv[]) {
   struct  termios pts;  /* termios settings on port */
   struct  termios sts;  /* termios settings on stdout/in */
   struct sigaction sact;/* used to initialize the signal handler */
-  int i;
   
   device[0] = '\0';
 
   /* parse command line */
   error = parse_cmdLine(argc,argv);
-    
-  if (strlen(device) == 0) {
-    /* if no device was passed on the command line,
-       try to autodetect a modem */
-    for (i = 0; i < 4; i++) {
-      sprintf(device, "/dev/ttyS%1d", i);
-      if (autodetect(device)) {	
-	break;
-      }
-    }
-    /* try again, to find FTDI USB / serial devices (if any)*/
-    if (i == 4) {
-      for (i = 0; i < 4; i++) {
-	sprintf(device, "/dev/ttyUSB%1d", i);
-	if (autodetect(device)) {	  
-	  break;
-	} /* (autodetect(i)) */
-      } /* for (i = 0; i < 4; i++) */
-    } /* (i == 4) */
-    
-    if (i == 4) {
-      main_usage(1, "no device found", "");
-    }
-  }
 
-  /* open the device */
-  pf = open(device, O_RDWR);
-  if (pf < 0) {
-    const int error = errno;
-    fprintf(stderr,"cannot open device %s, error = %d (%m)", device,error);
-    main_usage(2, "cannot open device", device);
+  if ('\0' == device[0]) {
+	/* try to find a connected serial device */
+    pf = autodetect();
+    if (pf < 0) {
+    	main_usage(2, "cannot found a connected serial device", device);
+    }
+  } else {
+	  /* open the device */
+	  pf = open(device, O_RDWR);
+	  if (pf < 0) {
+		  const int error = errno;
+		  ERROR_MSG("cannot open device %s, error = %d (%m)", device,error);
+		  main_usage(2, "cannot open device", device);
+	  }
   }
 
   /* modify the port configuration */
@@ -305,7 +288,7 @@ int main(int argc, char *argv[]) {
   sigaction(SIGPIPE, &sact, NULL);
   sigaction(SIGTERM, &sact, NULL);
 
-  /* run thhe main program loop */
+  /* run the main program loop */
   mux_loop(pf);
 
   /* restore original terminal settings and exit */
