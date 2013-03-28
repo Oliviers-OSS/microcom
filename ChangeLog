@@ -1,3 +1,9 @@
+2013-03-28 21:04:13 +0100 Olivier Charloton 
+
+	* New script keyword: quit to exit from the script AND close the program.
+	* The script keyword ! now honors the environment variables, like send and sendif.
+
+
 2013-03-13 19:08:34 +0100 Olivier Charloton 
 
 	* New autodetect procedures to detect a modem or any connected serial device sending data.

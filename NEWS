@@ -1,1 +1,2 @@
-the name of the logfile can now be defined in the command line.
+New script keyword: quit to exit from the script AND close the program.
+The script keyword ! now honors the environment variables, like send and sendif.    

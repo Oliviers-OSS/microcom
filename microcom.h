@@ -64,6 +64,7 @@ int script_process(S_ORIGINATOR orig, char* buf, int size); /* script.c */
 void script_init(char* s); /* script.c */
 void mux_clear_sflag(void); /* mus.c */
 void cleanup_termios(int signal);
+void exit_program(int exitCode);
 void init_stdin(struct termios *sts);
 void init_comm(struct termios *pts);
 void main_usage(int exitcode, char *str, char *dev);

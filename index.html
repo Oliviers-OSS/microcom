@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html;
-      charset=ISO-8859-1">
+      charset=windows-1252">
     <meta name="GENERATOR" content="Mozilla/4.73 [en] (WinNT; U)
       [Netscape]">
     <meta name="Description" content="just another open source project">
@@ -30,7 +30,7 @@
                 <tbody>
                   <tr>
                     <td><img src="penguin.gif" alt="Linux Penguin"
-                        align="left" height="250" width="225"></td>
+                        height="250" align="left" width="225"></td>
                     <td>1. <a href="#Desc">Description</a> <br>
                       2. <a href="#Features">Features</a> <br>
                       3. <a href="#usage">Usage</a> <br>
@@ -59,46 +59,12 @@
                           href="javascript:wopen('http://www.linuxrouter.org')">Linux
 Router
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                           Project</a>. We managed to bring the
                         executable size down under 17k, no ncurses
                         library support required. <br>
                         This software is released under <a
                           href="javascript:wopen('http://www.gnu.org/copyleft/gpl.html')">GNU
 General
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                           Public License</a>. </p>
                       <p>Rev. 1.03 - February 2013<br>
@@ -110,19 +76,6 @@ General
                         when an expected string matchs.<br>
                         - suspend script command renamed to exit.<br>
                         - timeout <font face="Verdana, Sans-Serif">script
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                           command renamed to suspend</font>.<br>
                         - timeout script command set now the time out
@@ -247,7 +200,7 @@ General
                       program. <br>
                       Example:
                       <pre><font face="Courier New,Courier">    if a &gt; 10 goto label1<br>    #more program lines .......<br>label1:<br>    print message</font></pre>
-                      <b>5.2.4 Exit program</b> <br>
+                      <b>5.2.4 Exit script</b><br>
                       Use exit to end the script. By default, when the
                       execution of the script reaches the end, the
                       script is restarted automatically. <br>
@@ -257,23 +210,6 @@ General
                           style="text-decoration: underline;">Note</span>:
                         in versions below 1.03, this </font><span
                         style="font-family: Verdana, Sans-Serif;">function
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                         was named suspend.</span><br>
                       <br>
@@ -285,23 +221,6 @@ General
                       Please note the blank space following !
                       character.&nbsp;
                       <p><b>5.2.6 </b><font face="Verdana, Sans-Serif"><b>Suspend
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                             program</b> </font><br>
                         Use suspend to wait for a specified number of
@@ -368,8 +287,15 @@ General
                         Sans-Serif"><font face="Verdana, Sans-Serif">
                           <pre><font face="Courier New,Courier">    # enable verbose mode<br>    verbose </font></pre>
                         </font></font><font face="Verdana, Sans-Serif"><font
-                          face="Courier New,Courier"><br>
-                        </font></font><b>5.3 Display access</b>
+                          face="Courier New,Courier"><font
+                            face="Verdana, Sans-Serif"><b>5.2.4 Quit
+                              program<br>							  
+                            </b></font></font></font><font
+                        face="Verdana, Sans-Serif">
+						  Use quit to exit from the script and close the microcom program, an optional exit code may be provided as an argument.
+						  <pre><font face="Courier New,Courier">    # close the program and send back value 0 to it's parent<br>    quit 0</font></pre>
+						<b>5.3 Display
+                        access</b>
                       <p>The only operation supported in this category
                         is to send a string to the display using print
                         command. <br>
@@ -426,42 +352,12 @@ General
                       <font face="Verdana, Sans-Serif"> </font>
                       <p> <a name="distribution"></a><b><font size="+1">6.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
                             Distribution</font></b> <br>
                         &nbsp; </p>
                       <blockquote><i>This program is free software; you
                           can redistribute it and/or modify it under the
                           terms of the <a
                             href="javascript:wopen('http://www.gnu.org/copyleft/gpl.html')">GNU
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                             General Public License</a> as published by
                           the Free Software Foundation; either version 2
@@ -481,7 +377,7 @@ General
                         (1,380,153) - utilities and image to create a
                         LRP disk (no FPU emulation) with microcom
                         installed&nbsp;&nbsp;</p>
-                      <p>New version, started from 1.03, are available
+                      <p>New versions, starting from 1.03, are available
                         from&nbsp;<font face="Verdana, Sans-Serif"><a
                             href="https://github.com/Oliviers-OSS/microcom">GitHub</a>.</font>
                       </p>
@@ -489,23 +385,6 @@ General
                             disk</font></b> </p>
                       <p><a
                           href="javascript:wopen('http://www.linuxrouter.org')">Linux
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                           Router Project</a> (LRP) is a
                         networking-centric micro-distribution of Linux.

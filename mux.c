@@ -97,7 +97,7 @@ void mux_loop(int pf) {
 	    const size_t written = fwrite(printable, 1, size, flog);
 	    if (written != size) {
 	      const int error = errno;
-	      DEBUG_MSG("error writting log file, only %u characters written, errno = %d",written,error);
+	      DEBUG_MSG("error writing log file, only %u characters written, errno = %d",written,error);
 	    }
 	  }	  
 	} else {

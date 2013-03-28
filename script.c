@@ -40,6 +40,7 @@
 ** Rev. 1.02 - June 2000
 ** Rev. 1.03 - Feb. 2013
 ** Rev. 1.04 - Feb. 2013
+** Rev. 1.05 - Mar. 2013
 ****************************************************************************/
 #include "microcom.h"
 #include "script.h"
@@ -413,7 +414,12 @@ char* doexit(char* text) {
 }
 
 char* doshell(char* text) {
-  system(text);
+  char *w = getword(&text);
+  if(w != CNULL) {
+	  system(w);
+  } else {
+	  syntaxerr("(expected argument after !)");
+  }
   return NULL;
 }
 
@@ -533,6 +539,16 @@ char* doexitOnTimeOut(char* text) {
   return NULL;
 }
 
+char* doexitProgram(char* text) {
+	int exitCode = EXIT_SUCCESS;
+	char *w = getword(&text);
+	if(w != CNULL) {
+		exitCode = getnum(w);
+	}
+	exit_program(exitCode);
+	return NULL;
+}
+
 char* doverbose(char* text) {
   char *w = getword(&text);
   if(w == CNULL) {
@@ -558,6 +574,7 @@ struct kw {
 //  { "gosub",	dogosub },
 //  { "return",	doreturn },
   { "exit",	doexit },
+  { "quit",	doexitProgram },
   { "print",	doprint },
   { "set",	doset },
   { "inc",	doinc },

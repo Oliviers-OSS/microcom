@@ -230,15 +230,22 @@ static inline int parse_cmdLine(int argc, char *argv[]) {
   return error;
 }
 
+void exit_program(int exitCode) {
+	/* close the log file first */
+	if (flog) {
+		close_logFile();
+	}
+	tcsetattr(pf, TCSANOW, &pots);
+	tcsetattr(STDIN_FILENO, TCSANOW, &sots);
+	exit(exitCode);
+}
+
 /* restore original terminal settings on exit */
 void cleanup_termios(int signal) {
-  /* close the log file first */
-  if (flog) {
-    close_logFile();
-  }
-  tcsetattr(pf, TCSANOW, &pots);
-  tcsetattr(STDIN_FILENO, TCSANOW, &sots);
-  exit(0);
+	if ((flog != NULL) && (signal != 0)) {
+		fprintf(flog,"exiting on signal %d\n",signal);
+	}
+	exit_program(0);
 } 
 
 int main(int argc, char *argv[]) {
