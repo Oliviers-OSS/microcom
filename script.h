@@ -21,22 +21,22 @@
 #ifndef SCRIPT_H  /* protection for multiple include */
 #define SCRIPT_H
 
-#define OK	0
-#define ERR	-1
-#define RETURN	1
-#define BREAK	2
+#define OK  0
+#define ERR -1
+#define RETURN  1
+#define BREAK   2
 
 typedef struct line {
-  char *line;
-  int labelcount;
-  int lineno;
-  struct line *next;
+    char *line;
+    int labelcount;
+    int lineno;
+    struct line *next;
 } LINE;
 
 typedef struct var {
-  char *name;
-  int value;
-  struct var *next;
+    char *name;
+    int value;
+    struct var *next;
 } VAR;
 
 #define LNULL ((LINE*)0)
@@ -49,12 +49,12 @@ typedef struct var {
  * Structure describing the script we are currently executing.
  */
 typedef struct {
-  LINE* lines;		/* Start of all lines */
-  VAR* vars;		/* Start of all variables */
-  char* scriptname;		/* Name of this script */
-  LINE* thisline;       /* next line to be executed */
-  int in_timeout;       /* in timeout flag */
+    LINE* lines;      /* Start of all lines */
+    VAR* vars;        /* Start of all variables */
+    char* scriptname;     /* Name of this script */
+    LINE* thisline;       /* next line to be executed */
+    int in_timeout;       /* in timeout flag */
 } ENV;
-  
+
 #endif /* SCRIPT_H */
 

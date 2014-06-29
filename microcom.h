@@ -36,7 +36,7 @@
 #include "debug.h"
 
 #ifndef VERSION
-#define VERSION "1.04"
+#define VERSION "1.06"
 #endif /* VERSION */
 
 #define MAX_SCRIPT_NAME PATH_MAX /* maximum length of the name of the script file */
@@ -50,14 +50,14 @@
 #define FALSE 0
 #endif
 
-void cook_buf(int fd, char *buf, int num); /* microcom.c */ 
+void cook_buf(int fd, char *buf, int num); /* microcom.c */
 void mux_loop(int pf); /* mux.c */
 
 typedef enum {
-  S_TIMEOUT,		/* timeout */
-  S_DTE,		/* incoming data coming from kbd */
-  S_DCE,		/* incoming data from serial port */
-  S_MAX			/* not used - just for checking */
+    S_TIMEOUT,        /* timeout */
+    S_DTE,        /* incoming data coming from kbd */
+    S_DCE,        /* incoming data from serial port */
+    S_MAX         /* not used - just for checking */
 } S_ORIGINATOR;
 
 int script_process(S_ORIGINATOR orig, char* buf, int size); /* script.c */
@@ -74,7 +74,7 @@ int close_logFile();
 #define DEFAULT_TIMEOUT 60
 
 /* options */
-#define OPTION_LOG_FILTER	(1<<0)
+#define OPTION_LOG_FILTER   (1<<0)
 
 #endif /* MICROCOM_H */
 

@@ -1,2 +1,3 @@
-New script keyword: quit to exit from the script AND close the program.
-The script keyword ! now honors the environment variables, like send and sendif.    
+New command line parameter to set the initial terminal speed.
+Code reformatted using "astyle -A3 --convert-tabs *.c *.h"
+    

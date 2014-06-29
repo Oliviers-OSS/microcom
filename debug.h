@@ -17,8 +17,8 @@
 #define SIMPLE_DEBUG_LOG_HEADER DEBUG_LOG_HEADER ":"
 #define DEBUG_LOG_HEADER_POS    " [ %s ("  __FILE__ ":%d)]:"
 
-#define CRIT_MSG(fmt,...)		LOGGER(LOG_EMERG,DEBUG_LOG_HEADER_POS fmt DEBUG_EOL,__FUNCTION__,__LINE__, ##__VA_ARGS__)
-#define ERROR_MSG(fmt,...)		LOGGER(LOG_ERR,DEBUG_LOG_HEADER_POS fmt DEBUG_EOL,__FUNCTION__,__LINE__, ##__VA_ARGS__)
+#define CRIT_MSG(fmt,...)       LOGGER(LOG_EMERG,DEBUG_LOG_HEADER_POS fmt DEBUG_EOL,__FUNCTION__,__LINE__, ##__VA_ARGS__)
+#define ERROR_MSG(fmt,...)      LOGGER(LOG_ERR,DEBUG_LOG_HEADER_POS fmt DEBUG_EOL,__FUNCTION__,__LINE__, ##__VA_ARGS__)
 #define WARNING_MSG(fmt,...)            LOGGER(LOG_WARNING,SIMPLE_DEBUG_LOG_HEADER fmt DEBUG_EOL, ##__VA_ARGS__)
 #define NOTICE_MSG(fmt,...)             LOGGER(LOG_NOTICE,SIMPLE_DEBUG_LOG_HEADER fmt DEBUG_EOL, ##__VA_ARGS__)
 
@@ -36,7 +36,8 @@
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 #endif /* MIN */
 
-static __inline void dumpMemory(const char *memoryName,const void *address, unsigned int size) {
+static __inline void dumpMemory(const char *memoryName,const void *address, unsigned int size)
+{
     const unsigned int nbBytesPerLines = 16;
     char hexa[(nbBytesPerLines+1) * 3];
     char ascii[(nbBytesPerLines+1)];
@@ -51,8 +52,8 @@ static __inline void dumpMemory(const char *memoryName,const void *address, unsi
         const unsigned int remaining = limit-cursor;
         const unsigned int lineSize = MIN(nbBytesPerLines,remaining);
 
-        for(i=0;i<lineSize;i++) {            
-            hexaCursor += sprintf(hexaCursor,"%.2X ",*cursor);            
+        for(i=0; i<lineSize; i++) {
+            hexaCursor += sprintf(hexaCursor,"%.2X ",*cursor);
             if ((*cursor >= 0x20) && (*cursor<= 0x7A)) {
                 asciiCursor += sprintf(asciiCursor,"%c",*cursor);
             } else {
@@ -69,10 +70,10 @@ static __inline void dumpMemory(const char *memoryName,const void *address, unsi
 
 #else
 
-#define INFO_MSG(fmt,...) 
+#define INFO_MSG(fmt,...)
 #define DEBUG_MSG(fmt,...)
 #define DEBUG_MARK
-#define DEBUG_VAR(x,f) 
+#define DEBUG_VAR(x,f)
 #define DEBUG_VAR_BOOL(Var)
 #define DEBUG_DUMP_MEMORY(Var,Size)
 
